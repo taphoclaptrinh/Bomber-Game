@@ -1,0 +1,6 @@
+@BomberServer_HostAddress = http://localhost:5215
+
+GET {{BomberServer_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

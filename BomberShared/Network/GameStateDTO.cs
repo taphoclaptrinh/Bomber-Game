@@ -1,0 +1,13 @@
+﻿using BomberShared.Models;
+
+namespace BomberShared.Network
+{
+    public class GameStateDTO
+    {
+        public List<Player> Players { get; set; } = new List<Player>();
+        public List<Bomb> Bombs { get; set; } = new List<Bomb>();
+        public List<Explosion> Explosions { get; set; } = new List<Explosion>();
+        public List<Creep> Creeps { get; set; } = new List<Creep>();
+        public long Tick { get; set; } = 0;
+    }
+}

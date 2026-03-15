@@ -82,5 +82,31 @@ namespace BomberShared.Map
 
             return false;
         }
+
+        // lấy 1 ô tại vị trí (x, y)
+        public Tile GetTile(int x, int y)
+        {
+            // kiểm tra không ra ngoài biên
+            if (x < 0 || x >= Width || y < 0 || y >= Height)
+                return null;
+            return Tiles[x, y];
+        }
+
+        // ô có đi được không
+        public bool IsWalkable(int x, int y)
+        {
+            var tile = GetTile(x, y);
+            if (tile == null) return false;
+            return tile.IsWalkable;
+        }
+
+        // phá tường mềm → đổi thành Empty
+        public void DestroyTile(int x, int y)
+        {
+            var tile = GetTile(x, y);
+            if (tile == null) return;
+            if (tile.Type == TileType.SoftWall)
+                tile.Type = TileType.Empty;
+        }
     }
 }
