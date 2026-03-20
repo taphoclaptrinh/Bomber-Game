@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BomberShared.Models
 {
@@ -20,12 +19,14 @@ namespace BomberShared.Models
                 Y = targetY * Speed;
             }
         }
+
         public void Die()
         {
             IsAlive = false;
         }
-        // lưu đường đi
-        private List<(int X, int Y)> _path = new List<(int X, int Y)>();
+
+        // ĐÃ SỬA: Thay thế Tuple bằng class Position để không bị lỗi giải mã JSON
+        private List<Position> _path = new List<Position>();
 
         public void FindPath(BomberShared.Map.MapManager map, int targetX, int targetY)
         {
@@ -65,15 +66,17 @@ namespace BomberShared.Models
             _path.Clear();
         }
 
-        private List<(int X, int Y)> TracePath(
+        // ĐÃ SỬA: Trả về List<Position>
+        private List<Position> TracePath(
             Dictionary<(int, int), (int, int)> parent,
             (int, int) start, (int, int) goal)
         {
-            var path = new List<(int X, int Y)>();
+            var path = new List<Position>();
             var current = goal;
             while (current != start)
             {
-                path.Add(current);
+                // Sử dụng new Position(x, y) thay vì tuple
+                path.Add(new Position(current.Item1, current.Item2));
                 current = parent[current];
             }
             path.Reverse();

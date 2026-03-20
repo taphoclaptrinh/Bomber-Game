@@ -44,10 +44,13 @@ namespace BomberClient.Rendering
             Microsoft.Xna.Framework.Content.ContentManager content,
             GraphicsDevice graphicsDevice)
         {
-            // dùng màu tạm thay sprite thật
-            _tileEmpty = CreateColorTexture(graphicsDevice, Color.Green);
+            // Tạm thời khởi tạo bằng hình vuông màu cho an toàn và không lo bị văng game
             _tileWall = CreateColorTexture(graphicsDevice, Color.Gray);
-            _tileSoftWall = CreateColorTexture(graphicsDevice, Color.SaddleBrown);
+            _tileSoftWall = CreateColorTexture(graphicsDevice, Color.Brown);
+
+            // ĐÃ THÊM: Nếu không có dòng này, game sẽ Crash khi vẽ ô trống
+            _tileEmpty = CreateColorTexture(graphicsDevice, Color.LawnGreen);
+
             _playerSprite = CreateColorTexture(graphicsDevice, Color.Blue);
             _bombSprite = CreateColorTexture(graphicsDevice, Color.Black);
             _explosionSprite = CreateColorTexture(graphicsDevice, Color.OrangeRed);

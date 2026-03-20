@@ -67,21 +67,21 @@ namespace BomberClient.Screens
             spriteBatch.Begin();
 
             // thông báo kết quả
-            //spriteBatch.DrawString(_font,
-            //    _message,
-            //    new Vector2(280, 180),
-            //    Color.Yellow);
+            spriteBatch.DrawString(_font,
+                _message,
+                new Vector2(280, 180),
+                Color.Yellow);
 
             // hướng dẫn
-            //spriteBatch.DrawString(_font,
-            //    "Enter: Chơi lại",
-            //    new Vector2(300, 260),
-            //    Color.White);
+            spriteBatch.DrawString(_font,
+                "Enter: Choi lai",
+                new Vector2(300, 260),
+                Color.White);
 
-            //spriteBatch.DrawString(_font,
-            //    "Escape: Thoát",
-            //    new Vector2(300, 300),
-            //    Color.Gray);
+            spriteBatch.DrawString(_font,
+            "Escape: Thoat",
+                new Vector2(300, 300),
+                Color.Gray);
 
             spriteBatch.End();
         }

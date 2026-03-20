@@ -13,17 +13,16 @@ namespace BomberClient.Screens
         // ====== PROPERTIES ======
         private NetworkManager _network;
         private SpriteFont _font;
+        private Texture2D _background;
 
         private string _playerName = "";
         private string _roomId = "";
-        private string _statusMessage = "Nhập tên và mã phòng để bắt đầu!";
+        private string _statusMessage = "Nhap ten va ma phong de bat dau!";
         private List<string> _playersInRoom = new();
 
-        // đang nhập ô nào: 0 = tên, 1 = phòng
         private int _activeField = 0;
         private bool _isConnecting = false;
 
-        // callback khi game bắt đầu
         public event Action? OnGameStarted;
 
         // ====== CONSTRUCTOR ======
@@ -31,16 +30,15 @@ namespace BomberClient.Screens
         {
             _network = network;
 
-            // lắng nghe events từ server
             _network.OnPlayerJoined += (name) =>
             {
                 _playersInRoom.Add(name);
-                _statusMessage = $"{name} đã vào phòng!";
+                _statusMessage = $"{name} da vao phong!";
             };
 
             _network.OnPlayerLeft += (id) =>
             {
-                _statusMessage = "Có người rời phòng!";
+                _statusMessage = "Co nguoi roi phong!";
             };
 
             _network.OnGameStarted += () =>
@@ -50,7 +48,7 @@ namespace BomberClient.Screens
 
             _network.OnRoomFull += () =>
             {
-                _statusMessage = "Phòng đã đầy!";
+                _statusMessage = "Phong da day!";
                 _isConnecting = false;
             };
         }
@@ -60,25 +58,27 @@ namespace BomberClient.Screens
         public void LoadContent(
             Microsoft.Xna.Framework.Content.ContentManager content)
         {
-            //_font = content.Load<SpriteFont>("Fonts/DefaultFont");
+            _font = content.Load<SpriteFont>("Fonts/DefaultFont");
+            _background = content.Load<Texture2D>("Background");
         }
 
         // ====== UPDATE ======
 
         public void Update(GameTime gameTime)
         {
-            var keyboard = Keyboard.GetState();
+            var current = Keyboard.GetState();
 
-            // Tab để chuyển ô nhập
-            if (IsKeyJustPressed(Keys.Tab))
+            // Tab chuyển ô
+            if (current.IsKeyDown(Keys.Tab) && _prevKeyboard.IsKeyUp(Keys.Tab))
                 _activeField = _activeField == 0 ? 1 : 0;
 
-            // nhập text
+            // Enter vào phòng
+            if (current.IsKeyDown(Keys.Enter) && _prevKeyboard.IsKeyUp(Keys.Enter))
+                _ = JoinRoom();
+
             HandleTextInput();
 
-            // Enter để vào phòng
-            if (IsKeyJustPressed(Keys.Enter))
-                _ = JoinRoom();
+            _prevKeyboard = current;
         }
 
         // ====== VÀO PHÒNG ======
@@ -87,26 +87,24 @@ namespace BomberClient.Screens
         {
             if (_playerName.Length == 0)
             {
-                _statusMessage = "Vui lòng nhập tên!";
+                _statusMessage = "Vui long nhap ten!";
                 return;
             }
 
             if (_roomId.Length == 0)
             {
-                _statusMessage = "Vui lòng nhập mã phòng!";
+                _statusMessage = "Vui long nhap ma phong!";
                 return;
             }
 
             if (_isConnecting) return;
 
             _isConnecting = true;
-            _statusMessage = "Đang kết nối...";
+            _statusMessage = "Dang ket noi...";
 
-            // kết nối server nếu chưa
             if (!_network.IsConnected)
                 await _network.Connect();
 
-            // vào phòng
             await _network.JoinRoom(_roomId, _playerName);
         }
 
@@ -114,65 +112,70 @@ namespace BomberClient.Screens
 
         public void Draw(SpriteBatch spriteBatch, GraphicsDevice graphicsDevice)
         {
-            // nền đen
             graphicsDevice.Clear(Color.Black);
 
             spriteBatch.Begin();
 
+            // background
+            spriteBatch.Draw(
+                _background,
+                new Rectangle(0, 0, 800, 600),
+                Color.White);
+
             // tiêu đề
-            //spriteBatch.DrawString(_font,
-            //    "BOMBERMAN ONLINE",
-            //    new Vector2(250, 50),
-            //    Color.Yellow);
+            spriteBatch.DrawString(_font,
+                "BOMBERMAN ONLINE",
+                new Vector2(250, 50),
+                Color.Yellow);
 
-            // ô nhập tên
-            //spriteBatch.DrawString(_font,
-            //    "Tên của bạn:",
-            //    new Vector2(100, 150),
-            //    Color.White);
+            // tên
+            spriteBatch.DrawString(_font,
+                "Ten cua ban:",
+                new Vector2(100, 150),
+                Color.White);
 
-            //spriteBatch.DrawString(_font,
-            //    $"[ {_playerName}{(_activeField == 0 ? "|" : "")} ]",
-            //    new Vector2(300, 150),
-            //    _activeField == 0 ? Color.Yellow : Color.Gray);
+            spriteBatch.DrawString(_font,
+                $"[ {_playerName}{(_activeField == 0 ? "|" : "")} ]",
+                new Vector2(300, 150),
+                _activeField == 0 ? Color.Yellow : Color.Gray);
 
-            // ô nhập mã phòng
-            //spriteBatch.DrawString(_font,
-            //    "Mã phòng:",
-            //    new Vector2(100, 200),
-            //    Color.White);
+            // mã phòng
+            spriteBatch.DrawString(_font,
+                "Ma phong:",
+                new Vector2(100, 200),
+                Color.White);
 
-            //spriteBatch.DrawString(_font,
-            //    $"[ {_roomId}{(_activeField == 1 ? "|" : "")} ]",
-            //    new Vector2(300, 200),
-            //    _activeField == 1 ? Color.Yellow : Color.Gray);
+            spriteBatch.DrawString(_font,
+                $"[ {_roomId}{(_activeField == 1 ? "|" : "")} ]",
+                new Vector2(300, 200),
+                _activeField == 1 ? Color.Yellow : Color.Gray);
 
             // hướng dẫn
-            //spriteBatch.DrawString(_font,
-            //    "Tab: chuyển ô  |  Enter: vào phòng",
-            //    new Vector2(100, 260),
-            //    Color.Gray);
+            spriteBatch.DrawString(_font,
+                "Tab: Chuyen o  |  Enter: Vao phong",
+                new Vector2(100, 260),
+                Color.Gray);
 
             // trạng thái
-            //spriteBatch.DrawString(_font,
-            //    _statusMessage,
-            //    new Vector2(100, 310),
-            //    Color.Cyan);
+            spriteBatch.DrawString(_font,
+                _statusMessage,
+                new Vector2(100, 310),
+                Color.Cyan);
 
-            // danh sách player trong phòng
+            // danh sách player
             if (_playersInRoom.Count > 0)
             {
-                //spriteBatch.DrawString(_font,
-                //    "Người chơi trong phòng:",
-                //    new Vector2(100, 370),
-                //    Color.White);
+                spriteBatch.DrawString(_font,
+                    "Nguoi choi trong phong:",
+                    new Vector2(100, 370),
+                    Color.White);
 
                 for (int i = 0; i < _playersInRoom.Count; i++)
                 {
-                    //spriteBatch.DrawString(_font,
-                    //    $"• {_playersInRoom[i]}",
-                    //    new Vector2(120, 400 + i * 30),
-                    //    Color.LightGreen);
+                    spriteBatch.DrawString(_font,
+                        $"- {_playersInRoom[i]}",
+                        new Vector2(120, 400 + i * 30),
+                        Color.LightGreen);
                 }
             }
 
@@ -183,42 +186,42 @@ namespace BomberClient.Screens
 
         private KeyboardState _prevKeyboard;
 
-        private bool IsKeyJustPressed(Keys key)
-        {
-            var current = Keyboard.GetState();
-            bool result = current.IsKeyDown(key) &&
-                         _prevKeyboard.IsKeyUp(key);
-            _prevKeyboard = current;
-            return result;
-        }
-
         private void HandleTextInput()
         {
             var current = Keyboard.GetState();
 
-            // xóa ký tự cuối khi nhấn Backspace
-            if (IsKeyJustPressed(Keys.Back))
-            {
-                if (_activeField == 0 && _playerName.Length > 0)
-                    _playerName = _playerName[..^1];
-                else if (_activeField == 1 && _roomId.Length > 0)
-                    _roomId = _roomId[..^1];
-                return;
-            }
-
-            // nhập chữ cái A-Z
             foreach (var key in current.GetPressedKeys())
             {
-                if (!IsKeyJustPressed(key)) continue;
+                // bỏ qua phím đã nhấn frame trước
+                if (_prevKeyboard.IsKeyDown(key)) continue;
 
+                // Backspace
+                if (key == Keys.Back)
+                {
+                    if (_activeField == 0 && _playerName.Length > 0)
+                        _playerName = _playerName[..^1];
+                    else if (_activeField == 1 && _roomId.Length > 0)
+                        _roomId = _roomId[..^1];
+                    continue;
+                }
+
+                // số 0-9
+                if (key >= Keys.D0 && key <= Keys.D9)
+                {
+                    string num = (key - Keys.D0).ToString();
+                    if (_activeField == 0 && _playerName.Length < 12)
+                        _playerName += num;
+                    else if (_activeField == 1 && _roomId.Length < 8)
+                        _roomId += num;
+                    continue;
+                }
+
+                // chữ A-Z
                 string ch = key.ToString();
-
-                // chỉ nhận A-Z và số
                 if (ch.Length == 1)
                 {
                     bool shift = current.IsKeyDown(Keys.LeftShift) ||
                                 current.IsKeyDown(Keys.RightShift);
-
                     if (_activeField == 0 && _playerName.Length < 12)
                         _playerName += shift ? ch : ch.ToLower();
                     else if (_activeField == 1 && _roomId.Length < 8)

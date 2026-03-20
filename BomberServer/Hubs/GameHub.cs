@@ -10,6 +10,12 @@ namespace BomberServer.Hubs
     {
         // lưu danh sách phòng: roomId → GameRoom
         private static Dictionary<string, GameRoom> _rooms = new();
+        private readonly IHubContext<GameHub> _hubContext;
+
+        public GameHub(IHubContext<GameHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
 
         // ====== KẾT NỐI ======
 
@@ -111,20 +117,18 @@ namespace BomberServer.Hubs
 
         private async Task StartGame(GameRoom room)
         {
-            Console.WriteLine($"Bắt đầu game phòng {room.RoomId}");
+            Console.WriteLine($"Bat day game phong {room.RoomId}");
 
-            // thông báo cho tất cả client: game bắt đầu
-            await Clients.Group(room.RoomId).SendAsync("GameStarted");
+            // ← thêm delay 500ms để client kịp đăng ký handler
+            await Task.Delay(500);
 
-            // tạo GameManager và chạy game loop
+            await _hubContext.Clients.Group(room.RoomId).SendAsync("GameStarted");
+
             room.GameManager = new GameManager(room.Players, async (state) =>
             {
-                // callback: mỗi tick gửi state cho tất cả client
-                await Clients.Group(room.RoomId)
-                             .SendAsync("StateUpdate", state);
+                await _hubContext.Clients.Group(room.RoomId).SendAsync("StateUpdate", state);
             });
 
-            // chạy game loop trên thread riêng
             _ = Task.Run(() => room.GameManager.Start());
         }
 

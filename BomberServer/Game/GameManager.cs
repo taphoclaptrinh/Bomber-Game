@@ -45,20 +45,29 @@ namespace BomberServer.Game
             IsRunning = true;
             Console.WriteLine("Game loop bắt đầu!");
 
-            while (IsRunning)
+            try // <--- THÊM TRY CATCH VÀO ĐÂY
             {
-                var startTime = DateTime.UtcNow;
+                while (IsRunning)
+                {
+                    var startTime = DateTime.UtcNow;
 
-                // 1 tick game
-                await GameTick();
+                    // 1 tick game
+                    await GameTick();
 
-                // tính thời gian còn lại để sleep
-                var elapsed = DateTime.UtcNow - startTime;
-                var tickDuration = TimeSpan.FromSeconds(DeltaTime);
-                var sleepTime = tickDuration - elapsed;
+                    // tính thời gian còn lại để sleep
+                    var elapsed = DateTime.UtcNow - startTime;
+                    var tickDuration = TimeSpan.FromSeconds(DeltaTime);
+                    var sleepTime = tickDuration - elapsed;
 
-                if (sleepTime > TimeSpan.Zero)
-                    await Task.Delay(sleepTime);
+                    if (sleepTime > TimeSpan.Zero)
+                        await Task.Delay(sleepTime);
+                }
+            }
+            catch (Exception ex)
+            {
+                // IN LỖI RA MÀN HÌNH NẾU GAME LOOP BỊ CRASH
+                Console.WriteLine("LỖI CRASH GAME LOOP: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
             }
         }
 
@@ -71,6 +80,7 @@ namespace BomberServer.Game
         private async Task GameTick()
         {
             Tick++;
+            Console.WriteLine("Server đang chạy Tick: " + Tick);
 
             // xử lý theo thứ tự
             ProcessInputQueue();
@@ -238,16 +248,16 @@ namespace BomberServer.Game
 
         private void CheckWinCondition()
         {
-            var alivePlayers = Players.Where(p => p.IsAlive).ToList();
+            //var alivePlayers = Players.Where(p => p.IsAlive).ToList();
 
-            if (alivePlayers.Count <= 1)
-            {
-                var winner = alivePlayers.FirstOrDefault();
-                Console.WriteLine(winner != null
-                    ? $"{winner.Name} thắng!"
-                    : "Hòa!");
-                Stop();
-            }
+            //if (alivePlayers.Count <= 1)
+            //{
+            //    var winner = alivePlayers.FirstOrDefault();
+            //    Console.WriteLine(winner != null
+            //        ? $"{winner.Name} thắng!"
+            //        : "Hòa!");
+            //    Stop();
+            //}
         }
 
         // ====== BROADCAST ======

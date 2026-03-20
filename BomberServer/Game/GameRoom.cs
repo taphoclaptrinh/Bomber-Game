@@ -1,4 +1,5 @@
 ﻿using BomberShared.Models;
+using System.Collections.Generic;
 
 namespace BomberServer.Game
 {
@@ -17,13 +18,13 @@ namespace BomberServer.Game
 
         public void AddPlayer(Player player)
         {
-            // gán SpawnPoint theo thứ tự vào phòng
-            var spawnPoints = new (int X, int Y)[]
+            // ĐÃ SỬA: Dùng từ khóa new Position() thay vì Tuple (1, 1)
+            var spawnPoints = new Position[]
             {
-                (1, 1),    // player 1 - góc trên trái
-                (13, 1),   // player 2 - góc trên phải
-                (1, 11),   // player 3 - góc dưới trái
-                (13, 11)   // player 4 - góc dưới phải
+                new Position(1, 1),    // player 1 - góc trên trái
+                new Position(13, 1),   // player 2 - góc trên phải
+                new Position(1, 11),   // player 3 - góc dưới trái
+                new Position(13, 11)   // player 4 - góc dưới phải
             };
 
             player.SpawnPoint = spawnPoints[Players.Count];
@@ -38,7 +39,7 @@ namespace BomberServer.Game
             Players.RemoveAll(p => p.Id == playerId);
         }
 
-        // đủ 2 người trở lên là bắt đầu được
-        public bool IsReady() => Players.Count >= 2 && !IsStarted;
+        // đủ 2 người trở lên là bắt đầu được (Đang để >= 1 để test 1 người)
+        public bool IsReady() => Players.Count >= 1 && !IsStarted;
     }
 }

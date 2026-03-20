@@ -49,6 +49,7 @@ namespace BomberClient.Screens
             // lắng nghe state từ server
             _network.OnStateReceived += (state) =>
             {
+                Console.WriteLine("Client đã nhận State mẻ mới!");
                 _currentState = state;
                 CheckGameOver();
             };
@@ -82,10 +83,12 @@ namespace BomberClient.Screens
         public void Draw(SpriteBatch spriteBatch,
                         GraphicsDevice graphicsDevice)
         {
+            graphicsDevice.Clear(Color.DarkGreen);
+
             // chưa nhận state → không vẽ gì
             if (_currentState == null) return;
 
-            graphicsDevice.Clear(Color.DarkGreen);
+
 
             spriteBatch.Begin();
 
@@ -109,15 +112,15 @@ namespace BomberClient.Screens
                 .Where(p => p.IsAlive).ToList();
 
             // còn 1 người hoặc không còn ai
-            if (alivePlayers.Count <= 1)
-            {
-                var winner = alivePlayers.FirstOrDefault();
-                string message = winner != null
-                    ? $"{winner.Name} thắng!"
-                    : "Hòa!";
+            //if (alivePlayers.Count <= 1)
+            //{
+            //    var winner = alivePlayers.FirstOrDefault();
+            //    string message = winner != null
+            //        ? $"{winner.Name} Win!"
+            //        : "Draw!";
 
-                OnGameOver?.Invoke(message);
-            }
+            //    OnGameOver?.Invoke(message);
+            //}
         }
     }
 }

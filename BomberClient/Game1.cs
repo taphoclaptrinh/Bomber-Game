@@ -2,6 +2,7 @@
 using BomberClient.Screens;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Threading.Tasks; // <--- Nhớ thêm thư viện này
 
 namespace BomberClient
 {
@@ -12,6 +13,7 @@ namespace BomberClient
         private NetworkManager _network;
 
         private enum GameState { Lobby, Playing, GameOver }
+        // Vẫn để mặc định là Lobby để tránh lỗi null, ta sẽ tự động chuyển cảnh rất nhanh
         private GameState _state = GameState.Lobby;
 
         private LobbyScreen _lobbyScreen;
@@ -21,6 +23,9 @@ namespace BomberClient
         private string _myPlayerId = "";
         private const string ServerUrl = "http://localhost:5215/gamehub";
 
+        // Cờ hiệu chuyển cảnh an toàn trên luồng chính
+        private bool _shouldSwitchToGame = false;
+
         public Game1() : base()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -28,36 +33,44 @@ namespace BomberClient
             IsMouseVisible = true;
             _graphics.PreferredBackBufferWidth = 800;
             _graphics.PreferredBackBufferHeight = 600;
-            Window.Title = "Tày đặt bom";
+            Window.Title = "Tày đặt bom (Test Mode)";
         }
 
         protected override void Initialize()
         {
             _network = new NetworkManager(ServerUrl);
-            _network.OnGameStarted += () => SwitchToGame();
+
+            // --- ĐOẠN CODE BYPASS LOBBY ---
+            // Chạy ngầm việc kết nối để không làm đơ màn hình
+            Task.Run(async () =>
+            {
+                await _network.Connect();
+                // Tự động vào phòng "TESTROOM" với tên "AutoPlayer"
+                await _network.JoinRoom("TESTROOM", "AutoPlayer");
+
+                // Bật cờ hiệu để luồng chính tự động chuyển sang GameScreen
+                _shouldSwitchToGame = true;
+            });
+
             base.Initialize();
         }
-
-        //protected override void LoadContent()
-        //{
-        //    _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-        //    _lobbyScreen = new LobbyScreen(_network);
-        //    _lobbyScreen.LoadContent(Content);
-        //    _lobbyScreen.OnGameStarted += () => SwitchToGame();
-        //}
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
             _lobbyScreen = new LobbyScreen(_network);
             _lobbyScreen.LoadContent(Content);
-            _lobbyScreen.OnGameStarted += () => SwitchToGame();
         }
 
         protected override void Update(GameTime gameTime)
         {
+            // Bắt cờ hiệu để chuyển cảnh an toàn trên luồng chính
+            if (_shouldSwitchToGame)
+            {
+                _shouldSwitchToGame = false;
+                SwitchToGame();
+            }
+
             switch (_state)
             {
                 case GameState.Lobby:
@@ -90,21 +103,13 @@ namespace BomberClient
             base.Draw(gameTime);
         }
 
-        //private void SwitchToGame()
-        //{
-        //    _myPlayerId = _network.GetConnectionId();
-        //    _gameScreen = new GameScreen(_network, _myPlayerId);
-        //    _gameScreen.LoadContent(Content);
-        //    _gameScreen.OnGameOver += (message) => SwitchToGameOver(message);
-        //    _state = GameState.Playing;
-        //}
-
         private void SwitchToGame()
         {
             _myPlayerId = _network.GetConnectionId();
             _gameScreen = new GameScreen(_network, _myPlayerId, GraphicsDevice);
             _gameScreen.LoadContent(Content);
             _gameScreen.OnGameOver += (message) => SwitchToGameOver(message);
+
             _state = GameState.Playing;
         }
 

@@ -1,5 +1,8 @@
 ﻿using BomberShared.Map;
 using BomberShared.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BomberServer.Game
 {
@@ -22,7 +25,7 @@ namespace BomberServer.Game
             var explosion = new Explosion();
 
             // ô gốc (nơi bom nổ) luôn bị ảnh hưởng
-            explosion.AffectedTiles.Add((originX, originY));
+            explosion.AffectedTiles.Add(new Position(originX, originY));
 
             // lan ra 4 hướng
             foreach (var dir in _directions)
@@ -46,7 +49,7 @@ namespace BomberServer.Game
                     // tường mềm → phá rồi dừng
                     if (tile.Type == TileType.SoftWall)
                     {
-                        explosion.AffectedTiles.Add((x, y));
+                        explosion.AffectedTiles.Add(new Position(x, y));
                         map.DestroyTile(x, y);
 
                         // random drop item
@@ -55,7 +58,7 @@ namespace BomberServer.Game
                     }
 
                     // ô trống → lan tiếp
-                    explosion.AffectedTiles.Add((x, y));
+                    explosion.AffectedTiles.Add(new Position(x, y));
                 }
             }
 
@@ -70,8 +73,8 @@ namespace BomberServer.Game
             foreach (var bomb in bombs.ToList())
             {
                 // bom nằm trong vùng nổ → kích nổ ngay
-                if (explosion.AffectedTiles
-                    .Contains(((int)bomb.X, (int)bomb.Y))
+                // ĐÃ SỬA: Dùng .Any() để so sánh tọa độ của Position với Bomb
+                if (explosion.AffectedTiles.Any(t => (int)t.X == (int)bomb.X && (int)t.Y == (int)bomb.Y)
                     && !bomb.IsDetonated)
                 {
                     bomb.FuseTime = 0;  // nổ ngay lập tức
@@ -88,8 +91,8 @@ namespace BomberServer.Game
         {
             foreach (var player in players.Where(p => p.IsAlive))
             {
-                if (explosion.AffectedTiles
-                    .Contains(((int)player.X, (int)player.Y)))
+                // ĐÃ SỬA: Dùng .Any() để so sánh tọa độ của Position với Player
+                if (explosion.AffectedTiles.Any(t => (int)t.X == (int)player.X && (int)t.Y == (int)player.Y))
                 {
                     player.Die();
                     Console.WriteLine($"{player.Name} bị trúng bom!");
@@ -104,8 +107,8 @@ namespace BomberServer.Game
         {
             foreach (var creep in creeps.Where(c => c.IsAlive))
             {
-                if (explosion.AffectedTiles
-                    .Contains(((int)creep.X, (int)creep.Y)))
+                // ĐÃ SỬA: Dùng .Any() để so sánh tọa độ của Position với Creep
+                if (explosion.AffectedTiles.Any(t => (int)t.X == (int)creep.X && (int)t.Y == (int)creep.Y))
                 {
                     creep.Die();
                     Console.WriteLine("Creep bị tiêu diệt!");

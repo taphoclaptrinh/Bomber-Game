@@ -15,8 +15,9 @@ namespace BomberShared.Models
         public bool IsAlive { get; set; } = true;
         public int ActiveBombs { get; set; } = 0;
         public float Speed { get; set; } = 3.0f;
-        public (int X, int Y) SpawnPoint { get; set; }
-        
+        //public (int X, int Y) SpawnPoint { get; set; }
+        public Position SpawnPoint { get; set; } = new Position(0, 0);
+
         //=====Methods=====
         public void Move(int deltaX, int deltaY) {
             X += deltaX * Speed;
