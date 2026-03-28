@@ -57,6 +57,12 @@ namespace BomberServer.Game
                         break;
                     }
 
+                    if (tile != null && tile.Item != null)
+                    {
+                        tile.Item = null; // Item bị nổ cháy mất!
+                        Console.WriteLine($"[Server] Item tại ({x},{y}) đã bị nổ tung!");
+                    }
+
                     // ô trống → lan tiếp
                     explosion.AffectedTiles.Add(new Position(x, y));
                 }

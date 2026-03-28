@@ -1,6 +1,6 @@
-﻿using System;
+﻿using BomberShared.Models;
+using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BomberShared.Map
 {
@@ -10,56 +10,48 @@ namespace BomberShared.Map
         public int Height { get; private set; }
         public Tile[,] Tiles { get; private set; }
 
-        // Constructor khởi tạo MapManager
-        public MapManager(int width, int height)
+        // Thêm danh sách lưu lại tọa độ gạch đã bị phá
+        public List<Position> DestroyedTiles { get; set; } = new List<Position>();
+
+        // Thêm tham số 'seed' vào Constructor
+        public MapManager(int width, int height, int seed = 12345)
         {
             Width = width;
             Height = height;
             Tiles = new Tile[Width, Height];
-
-            GenerateMap();
+            GenerateMap(seed);
         }
 
-        // Đã thêm chữ "void" vào đây
-        public void GenerateMap()
+        public void GenerateMap(int seed)
         {
-            Random random = new Random();
+            Random random = new Random(seed); // Bắt buộc phải truyền seed vào đây
 
             for (int x = 0; x < Width; x++)
             {
                 for (int y = 0; y < Height; y++)
                 {
-                    // 1. Khởi tạo đối tượng Tile trước tiên
                     Tiles[x, y] = new Tile();
 
-                    // 2. TƯỜNG BAO (Border)
                     if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                     {
-                        // Lưu ý: Đổi thành tên Enum thực tế của bạn (Wall hoặc HardWall)
                         Tiles[x, y].Type = TileType.Wall;
                     }
-                    // 3. CỘT TRỤ BÀN CỜ (Checkerboard HardWall)
-                    // Nằm ở các tọa độ chẵn (2, 4, 6...) bên trong map
                     else if (x % 2 == 0 && y % 2 == 0)
                     {
                         Tiles[x, y].Type = TileType.Wall;
                     }
-                    // 4. KHU VỰC AN TOÀN (Safe Zones) cho 4 góc
-                    // Đảm bảo người chơi sinh ra không bị gạch bọc kín mặt
                     else if (IsSafeZone(x, y))
                     {
                         Tiles[x, y].Type = TileType.Empty;
                     }
-                    // 5. CÒN LẠI: Random Tường mềm (Gạch) hoặc Ô trống
                     else
                     {
-                        int roll = random.Next(1, 101); // Random từ 1 đến 100
-
-                        if (roll <= 65) // 65% tỷ lệ ra Tường Mềm
+                        int roll = random.Next(1, 101);
+                        if (roll <= 65)
                         {
                             Tiles[x, y].Type = TileType.SoftWall;
                         }
-                        else // 35% tỷ lệ ra Ô trống
+                        else
                         {
                             Tiles[x, y].Type = TileType.Empty;
                         }
@@ -68,31 +60,21 @@ namespace BomberShared.Map
             }
         }
 
-        // Hàm phụ trợ giúp code gọn gàng: Kiểm tra xem ô đó có nằm ở 4 góc không
         private bool IsSafeZone(int x, int y)
         {
-            // Góc trên - trái
             if (x <= 2 && y <= 2) return true;
-            // Góc trên - phải
             if (x >= Width - 3 && y <= 2) return true;
-            // Góc dưới - trái
             if (x <= 2 && y >= Height - 3) return true;
-            // Góc dưới - phải
             if (x >= Width - 3 && y >= Height - 3) return true;
-
             return false;
         }
 
-        // lấy 1 ô tại vị trí (x, y)
         public Tile GetTile(int x, int y)
         {
-            // kiểm tra không ra ngoài biên
-            if (x < 0 || x >= Width || y < 0 || y >= Height)
-                return null;
+            if (x < 0 || x >= Width || y < 0 || y >= Height) return null;
             return Tiles[x, y];
         }
 
-        // ô có đi được không
         public bool IsWalkable(int x, int y)
         {
             var tile = GetTile(x, y);
@@ -100,13 +82,17 @@ namespace BomberShared.Map
             return tile.IsWalkable;
         }
 
-        // phá tường mềm → đổi thành Empty
         public void DestroyTile(int x, int y)
         {
             var tile = GetTile(x, y);
             if (tile == null) return;
             if (tile.Type == TileType.SoftWall)
+            {
                 tile.Type = TileType.Empty;
+
+                // LƯU LẠI TỌA ĐỘ BỊ PHÁ ĐỂ GỬI CHO CLIENT
+                DestroyedTiles.Add(new Position(x, y));
+            }
         }
     }
 }

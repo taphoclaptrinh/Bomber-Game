@@ -23,7 +23,9 @@ namespace BomberClient.Screens
 
         // map local (để renderer vẽ)
         private GraphicsDevice _graphicsDevice;
-        private MapManager _map;
+
+        // ĐÃ SỬA: Cho phép Map ban đầu là null, chờ Server gửi Seed xuống mới tạo
+        private MapManager? _map;
 
         // thông tin player của mình
         private string _myPlayerId = "";
@@ -37,20 +39,37 @@ namespace BomberClient.Screens
         // ====== CONSTRUCTOR ======
         public GameScreen(NetworkManager network, string playerId, GraphicsDevice graphicsDevice)
         {
-                
+
             _graphicsDevice = graphicsDevice;
 
             _network = network;
             _myPlayerId = playerId;
             _renderer = new GameRenderer();
             _input = new InputHandler();
-            _map = new MapManager(15, 13);
+
+            // XÓA DÒNG NÀY: _map = new MapManager(15, 13);
 
             // lắng nghe state từ server
             _network.OnStateReceived += (state) =>
             {
-                Console.WriteLine("Client đã nhận State mẻ mới!");
+                // Console.WriteLine("Client đã nhận State mẻ mới!"); // Bạn có thể tắt log này đi cho đỡ rối Console
                 _currentState = state;
+
+                // 1. TẠO BẢN ĐỒ DỰA TRÊN SEED CỦA SERVER
+                if (_map == null)
+                {
+                    _map = new MapManager(15, 13, state.MapSeed);
+                }
+
+                // 2. ĐỒNG BỘ GẠCH BỊ PHÁ (Chuyển gạch nâu thành ô xanh lá cây)
+                if (state.DestroyedWalls != null)
+                {
+                    foreach (var pos in state.DestroyedWalls)
+                    {
+                        _map.DestroyTile((int)pos.X, (int)pos.Y);
+                    }
+                }
+
                 CheckGameOver();
             };
         }
@@ -83,14 +102,17 @@ namespace BomberClient.Screens
         public void Draw(SpriteBatch spriteBatch,
                         GraphicsDevice graphicsDevice)
         {
+            // BƯỚC 1: Luôn xóa màn hình cũ (tránh lỗi bóng ma Lobby)
             graphicsDevice.Clear(Color.DarkGreen);
 
-            // chưa nhận state → không vẽ gì
-            if (_currentState == null) return;
+            // BƯỚC 2: Chưa nhận state HOẶC chưa có map → Dừng, chỉ hiện nền xanh
+            if (_currentState == null || _map == null) return;
 
-
-
-            spriteBatch.Begin();
+            spriteBatch.Begin(
+                SpriteSortMode.Deferred,
+                BlendState.AlphaBlend,
+                SamplerState.PointClamp, // Ép các pixel khít nhau, xóa bỏ đường kẻ đen
+                null, null, null, null);
 
             // vẽ game
             _renderer.Draw(spriteBatch, _currentState, _map);

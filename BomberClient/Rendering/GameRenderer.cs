@@ -2,197 +2,214 @@
 using BomberShared.Models;
 using BomberShared.Network;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using SharpDX.Direct3D9;
-using System.Collections.Generic;
-using System.Linq;          // cho .Where()
-using BomberShared.Map;     // cho MapManager, TileType
-using BomberShared.Models;  // cho Player, Creep
+using System;
+using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BomberClient.Rendering
 {
     public class GameRenderer
     {
-        // ====== SPRITES ======
-        private Texture2D _tileEmpty;
+        // --- GIỮ NGUYÊN KÍCH THƯỚC NHÂN VẬT BAN ĐẦU CỦA BẠN ---
+        private const int FrameWidth = 141;
+        private const int FrameHeight = 310;
+        private const int DrawWidth = 48;
+        private const int DrawHeight = 80;
+
+        private const int TileSize = 48;
+
+        // --- THÔNG SỐ CẮT QUẢ BOM 45x45 ---
+        private const int BombFrameWidth = 45;
+        private const int BombFrameHeight = 45;
+        private const int TotalBombFrames = 5;
+
         private Texture2D _tileWall;
         private Texture2D _tileSoftWall;
+        private Texture2D _tileEmpty;
         private Texture2D _playerSprite;
         private Texture2D _bombSprite;
         private Texture2D _explosionSprite;
-        private Texture2D _creepSprite;
-        private Texture2D _itemSprite;
+        private Texture2D _creepBack;  // image_8.png (Nhìn từ sau)
+        private Texture2D _creepRight; // image_9.png (Quay phải)
+        private Texture2D _creepLeft;  // image_10.png (Quay trái)
+        private Texture2D _creepFront; // image_11.png (Nhìn thẳng)
+        private Texture2D _itemBomb;     // Cho item_bomb.gif (Tăng số lượng bom)
+        private Texture2D _itemShoe;     // Cho item_shoe.gif (Tăng tốc độ chạy)
+        private Texture2D _itemBombSize; // Cho item_bombsize.gif (Tăng tầm nổ - bình thuốc)
 
-        // kích thước 1 ô trên màn hình (pixel)
-        private const int TileSize = 48;
+        private float _bombPulseTimer;
+        private int _currentBombFrame;
 
-        // ====== LOAD SPRITES ======
-
-        //public void LoadContent(Microsoft.Xna.Framework.Content.ContentManager content)
-        //{
-        //    _tileEmpty = content.Load<Texture2D>("Sprites/tile_empty");
-        //    _tileWall = content.Load<Texture2D>("Sprites/tile_wall");
-        //    _tileSoftWall = content.Load<Texture2D>("Sprites/tile_softwall");
-        //    _playerSprite = content.Load<Texture2D>("Sprites/player");
-        //    _bombSprite = content.Load<Texture2D>("Sprites/bomb");
-        //    _explosionSprite = content.Load<Texture2D>("Sprites/explosion");
-        //    _creepSprite = content.Load<Texture2D>("Sprites/creep");
-        //    _itemSprite = content.Load<Texture2D>("Sprites/item");
-        //}
-
-        public void LoadContent(
-            Microsoft.Xna.Framework.Content.ContentManager content,
-            GraphicsDevice graphicsDevice)
+        public void LoadContent(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            // Tạm thời khởi tạo bằng hình vuông màu cho an toàn và không lo bị văng game
-            _tileWall = CreateColorTexture(graphicsDevice, Color.Gray);
-            _tileSoftWall = CreateColorTexture(graphicsDevice, Color.Brown);
+            // Load Player và Map
+            try { _playerSprite = content.Load<Texture2D>("PlayerSheet2"); }
+            catch { _playerSprite = CreateColorTexture(graphicsDevice, Color.Blue); }
 
-            // ĐÃ THÊM: Nếu không có dòng này, game sẽ Crash khi vẽ ô trống
-            _tileEmpty = CreateColorTexture(graphicsDevice, Color.LawnGreen);
+            try { _tileWall = content.Load<Texture2D>("Stone"); } catch { _tileWall = CreateColorTexture(graphicsDevice, Color.Gray); }
+            try { _tileSoftWall = content.Load<Texture2D>("Brick"); } catch { _tileSoftWall = CreateColorTexture(graphicsDevice, Color.Brown); }
+            try { _tileEmpty = content.Load<Texture2D>("Way"); } catch { _tileEmpty = CreateColorTexture(graphicsDevice, Color.LawnGreen); }
 
-            _playerSprite = CreateColorTexture(graphicsDevice, Color.Blue);
-            _bombSprite = CreateColorTexture(graphicsDevice, Color.Black);
-            _explosionSprite = CreateColorTexture(graphicsDevice, Color.OrangeRed);
-            _creepSprite = CreateColorTexture(graphicsDevice, Color.Red);
-            _itemSprite = CreateColorTexture(graphicsDevice, Color.Yellow);
+            // Load Bomb (File 45x225 của bạn)
+            try { _bombSprite = content.Load<Texture2D>("bomb"); }
+            catch { _bombSprite = CreateColorTexture(graphicsDevice, Color.Black); }
+
+            // Load Vụ nổ xanh (bombbang.png)
+            try { _explosionSprite = content.Load<Texture2D>("bombbang"); }
+            catch { _explosionSprite = CreateColorTexture(graphicsDevice, Color.DeepSkyBlue); }
+
+            try { _creepBack = content.Load<Texture2D>("creep_back"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepRight = content.Load<Texture2D>("creep_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepLeft = content.Load<Texture2D>("creep_left"); } catch { _creepLeft = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepFront = content.Load<Texture2D>("creep_front"); } catch { _creepFront = CreateColorTexture(graphicsDevice, Color.Red); }
+
+            try { _itemBomb = content.Load<Texture2D>("item_bomb"); }
+            catch { _itemBomb = CreateColorTexture(graphicsDevice, Color.Blue); }
+
+            try { _itemShoe = content.Load<Texture2D>("item_shoe"); }
+            catch { _itemShoe = CreateColorTexture(graphicsDevice, Color.Red); }
+
+            try { _itemBombSize = content.Load<Texture2D>("item_bombsize"); }
+            catch { _itemBombSize = CreateColorTexture(graphicsDevice, Color.Cyan); }
         }
 
-        // ====== VẼ TOÀN BỘ GAME ======
+        public void Update(GameTime gameTime)
+        {
+            float elapsed = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            // Cập nhật nhịp đập và khung hình cho quả bom
+            _bombPulseTimer += (float)gameTime.ElapsedGameTime.TotalSeconds * 12f;
+            _currentBombFrame = (int)Math.Floor(_bombPulseTimer) % TotalBombFrames;
+        }
 
         public void Draw(SpriteBatch spriteBatch, GameStateDTO state, MapManager map)
         {
-            DrawMap(spriteBatch, map);
-            DrawBombs(spriteBatch, state.Bombs);
-            DrawExplosions(spriteBatch, state.Explosions);
-            //DrawItems(spriteBatch, map);
-            DrawCreeps(spriteBatch, state.Creeps);
-            DrawPlayers(spriteBatch, state.Players);
-        }
-
-        // ====== VẼ MAP ======
-
-        private void DrawMap(SpriteBatch spriteBatch, MapManager map)
-        {
+            // 1. Vẽ bản đồ
             for (int x = 0; x < map.Width; x++)
             {
                 for (int y = 0; y < map.Height; y++)
                 {
                     var tile = map.GetTile(x, y);
-                    var texture = tile.Type switch
+
+                    Texture2D texture = tile.Type switch
                     {
                         TileType.Wall => _tileWall,
                         TileType.SoftWall => _tileSoftWall,
                         _ => _tileEmpty
                     };
+                    spriteBatch.Draw(texture, new Rectangle(x * TileSize, y * TileSize, TileSize, TileSize), Color.White);
 
-                    spriteBatch.Draw(
-                        texture,
-                        new Rectangle(x * TileSize, y * TileSize, TileSize, TileSize),
-                        Color.White);
-
-                    // vẽ item nếu có trên ô
-                    if (tile.Item != null)
-                        spriteBatch.Draw(
-                            _itemSprite,
-                            new Rectangle(x * TileSize, y * TileSize, TileSize, TileSize),
-                            Color.White);
+                    if (state.Items != null)
+                    {
+                        foreach (var item in state.Items)
+                        {
+                            DrawItem(spriteBatch, item);
+                        }
+                    }
                 }
             }
-        }
 
-        // ====== VẼ PLAYER ======
+            // 2. Vẽ Item, Bom, Vụ nổ
+            foreach (var bomb in state.Bombs) DrawBomb(spriteBatch, bomb);
+            foreach (var explosion in state.Explosions) DrawExplosion(spriteBatch, explosion);
+            foreach (var creep in state.Creeps) DrawCreep(spriteBatch, creep);
 
-        private void DrawPlayers(SpriteBatch spriteBatch, List<Player> players)
-        {
-            foreach (var player in players.Where(p => p.IsAlive))
+            // 3. Vẽ Player (Vẽ sau cùng để nhân vật đè lên bom/vụ nổ)
+            foreach (var player in state.Players.Where(p => p.IsAlive))
             {
-                spriteBatch.Draw(
-                    _playerSprite,
-                    new Rectangle(
-                        (int)(player.X * TileSize),
-                        (int)(player.Y * TileSize),
-                        TileSize, TileSize),
-                    Color.White);
-
-                // vẽ tên player phía trên
-                // (cần SpriteFont - thêm sau)
+                if (player.X >= 0) DrawPlayer(spriteBatch, player);
             }
         }
 
-        // ====== VẼ BOM ======
-
-        private void DrawBombs(SpriteBatch spriteBatch, List<Bomb> bombs)
+        private void DrawPlayer(SpriteBatch spriteBatch, Player player)
         {
-            foreach (var bomb in bombs)
-            {
-                // nhấp nháy khi sắp nổ
-                bool visible = bomb.FuseTime > 1f ||
-                               (int)(bomb.FuseTime * 10) % 2 == 0;
+            int row = (int)player.CurrentDirection;
+            Rectangle sourceRect = new Rectangle(0, row * FrameHeight, FrameWidth, FrameHeight);
 
-                if (visible)
-                    spriteBatch.Draw(
-                        _bombSprite,
-                        new Rectangle(
-                            (int)(bomb.X * TileSize),
-                            (int)(bomb.Y * TileSize),
-                            TileSize, TileSize),
-                        Color.White);
-            }
+            int destX = (int)(player.X * TileSize + (TileSize - DrawWidth) / 2);
+            int destY = (int)(player.Y * TileSize - (DrawHeight - TileSize));
+
+            spriteBatch.Draw(_playerSprite, new Rectangle(destX, destY, DrawWidth, DrawHeight), sourceRect, Color.White);
         }
 
-        // ====== VẼ EXPLOSION ======
-
-        private void DrawExplosions(SpriteBatch spriteBatch, List<Explosion> explosions)
+        private void DrawBomb(SpriteBatch spriteBatch, Bomb bomb)
         {
-            foreach (var explosion in explosions)
-            {
-                foreach (var tile in explosion.AffectedTiles)
-                {
-                    spriteBatch.Draw(
-                        _explosionSprite,
-                        new Rectangle(
-                            (int)(tile.X * TileSize),
-                            (int)(tile.Y * TileSize),
-                            TileSize, TileSize),
-                        Color.White);
-                }
-            }
+            // BƯỚC 1: Tạo "con dao" cắt đúng 1 ô 45x45
+            // _currentBombFrame sẽ chạy từ 0 đến 4 nhờ hàm Update
+            Rectangle sourceRect = new Rectangle(0, _currentBombFrame * BombFrameHeight, BombFrameWidth, BombFrameHeight);
+
+            // BƯỚC 2: Tính toán hiệu ứng co giãn (Pulse) để bom "đập" như tim
+            float pulse = (float)Math.Sin(_bombPulseTimer) * 3f;
+            int size = (int)(TileSize + pulse);
+            int offset = (int)(pulse / 2f);
+
+            // BƯỚC 3: Vị trí vẽ trên màn hình
+            Rectangle destRect = new Rectangle(
+                (int)(bomb.X * TileSize) - offset,
+                (int)(bomb.Y * TileSize) - offset,
+                size,
+                size
+            );
+
+            // BƯỚC 4: Vẽ (PHẢI CÓ sourceRect ở đây thì nó mới chuyển động)
+            spriteBatch.Draw(_bombSprite, destRect, sourceRect, Color.White);
+
+            // Dòng này sẽ in số khung hình đang vẽ ra cửa sổ Output của Visual Studio
+            System.Diagnostics.Debug.WriteLine($"Drawing Bomb Frame: {_currentBombFrame}");
         }
-
-        // ====== VẼ CREEP ======
-
-        private void DrawCreeps(SpriteBatch spriteBatch, List<Creep> creeps)
+        private void DrawExplosion(SpriteBatch spriteBatch, Explosion explosion)
         {
-            foreach (var creep in creeps.Where(c => c.IsAlive))
+            foreach (var tile in explosion.AffectedTiles)
             {
-                spriteBatch.Draw(
-                    _creepSprite,
-                    new Rectangle(
-                        (int)(creep.X * TileSize),
-                        (int)(creep.Y * TileSize),
-                        TileSize, TileSize),
+                // Vẽ vụ nổ xanh đè lên ô gạch
+                spriteBatch.Draw(_explosionSprite,
+                    new Rectangle((int)tile.X * TileSize, (int)tile.Y * TileSize, TileSize, TileSize),
                     Color.White);
             }
         }
 
-        // ====== VẼ HUD ======
-
-        public void DrawHUD(SpriteBatch spriteBatch, Player player)
+        private void DrawCreep(SpriteBatch spriteBatch, Creep creep)
         {
-            // TODO: vẽ số bom, blast radius, tốc độ
-            // cần SpriteFont để hiển thị text
-            // sẽ thêm sau khi có font
+            // Renderer bây giờ cực kỳ nhàn, chỉ việc lấy dữ liệu có sẵn để vẽ
+            Texture2D textureToDraw = creep.CurrentDirection switch
+            {
+                Creep.MoveDirection.Up => _creepBack,
+                Creep.MoveDirection.Right => _creepRight,
+                Creep.MoveDirection.Left => _creepLeft,
+                _ => _creepFront
+            };
+
+            spriteBatch.Draw(textureToDraw,
+                new Rectangle((int)(creep.X * TileSize), (int)(creep.Y * TileSize), TileSize, TileSize),
+                Color.White);
         }
 
-        // thêm vào GameRenderer.cs
+        private void DrawItem(SpriteBatch spriteBatch, Item item)
+        {
+            // Chọn texture tương ứng (Đảm bảo bạn đã load các _itemBomb, _itemShoe... ở LoadContent)
+            Texture2D texture = item.Type switch
+            {
+                PowerUpType.ExtraBomb => _itemBomb,
+                PowerUpType.SpeedUp => _itemShoe,
+                PowerUpType.RangeUp => _itemBombSize,
+                _ => _tileEmpty
+            };
+
+            spriteBatch.Draw(texture,
+                new Rectangle(item.X * TileSize, item.Y * TileSize, TileSize, TileSize),
+                Color.White);
+        }
+
+        public void DrawHUD(SpriteBatch spriteBatch, Player player) { }
+
         private Texture2D CreateColorTexture(GraphicsDevice graphicsDevice, Color color)
         {
             var texture = new Texture2D(graphicsDevice, 1, 1);
             texture.SetData(new[] { color });
             return texture;
         }
-
     }
 }
 

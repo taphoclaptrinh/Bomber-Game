@@ -14,6 +14,7 @@ namespace BomberServer.Game
         public MapManager Map { get; set; }
         public bool IsRunning { get; set; } = false;
         public long Tick { get; set; } = 0;
+        private int _mapSeed;
 
         // hàng đợi input từ clients
         private Queue<PlayerInputPacket> _inputQueue = new();
@@ -30,7 +31,9 @@ namespace BomberServer.Game
                           Func<GameStateDTO, Task> broadcastCallback)
         {
             Players = players;
-            Map = new MapManager(15, 13);
+            _mapSeed = new Random().Next();
+            Map = new MapManager(15, 13, _mapSeed);
+
             _broadcastCallback = broadcastCallback;
 
             // spawn creep ở giữa map
@@ -104,6 +107,8 @@ namespace BomberServer.Game
             }
         }
 
+        // ====== XỬ LÝ INPUT VÀ VA CHẠM (Thay thế hàm cũ) ======
+
         private void ProcessInputQueue()
         {
             lock (_inputQueue)
@@ -114,18 +119,53 @@ namespace BomberServer.Game
                     var player = Players.Find(p => p.Id == packet.PlayerId);
                     if (player == null || !player.IsAlive) continue;
 
-                    // di chuyển player
+                    // ====== 1. XỬ LÝ DI CHUYỂN BẰNG HITBOX (Trượt tường mượt) ======
                     if (packet.DeltaX != 0 || packet.DeltaY != 0)
                     {
-                        int newX = (int)player.X + packet.DeltaX;
-                        int newY = (int)player.Y + packet.DeltaY;
+                        // --- LOGIC XOAY: Cập nhật hướng dựa trên input ---
+                        // Ưu tiên hướng dọc (Y) hoặc ngang (X) tùy theo cái nào đang nhấn
+                        if (packet.DeltaY > 0) player.CurrentDirection = MoveDirection.Down;
+                        else if (packet.DeltaY < 0) player.CurrentDirection = MoveDirection.Up;
+                        else if (packet.DeltaX < 0) player.CurrentDirection = MoveDirection.Left;
+                        else if (packet.DeltaX > 0) player.CurrentDirection = MoveDirection.Right;
 
-                        // kiểm tra collision trước khi di chuyển
-                        if (Map.IsWalkable(newX, newY))
-                            player.Move(packet.DeltaX, packet.DeltaY);
+                        float moveAmount = player.Speed * 0.1f;
+                        float margin = 0.2f;
+
+                        // Xử lý di chuyển trục X
+                        if (packet.DeltaX != 0)
+                        {
+                            float nextX = player.X + packet.DeltaX * moveAmount;
+                            int left = (int)(nextX + margin);
+                            int right = (int)(nextX + 1f - margin);
+                            int top = (int)(player.Y + margin);
+                            int bottom = (int)(player.Y + 1f - margin);
+
+                            if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
+                                Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                            {
+                                player.X = nextX;
+                            }
+                        }
+
+                        // Xử lý di chuyển trục Y
+                        if (packet.DeltaY != 0)
+                        {
+                            float nextY = player.Y + packet.DeltaY * moveAmount;
+                            int left = (int)(player.X + margin);
+                            int right = (int)(player.X + 1f - margin);
+                            int top = (int)(nextY + margin);
+                            int bottom = (int)(nextY + 1f - margin);
+
+                            if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
+                                Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                            {
+                                player.Y = nextY;
+                            }
+                        }
                     }
 
-                    // đặt bom
+                    // ====== 2. XỬ LÝ ĐẶT BOM ======
                     if (packet.PlaceBomb)
                     {
                         PlaceBomb(player);
@@ -134,18 +174,25 @@ namespace BomberServer.Game
             }
         }
 
-        // ====== BOM ======
+        // ====== XỬ LÝ ĐẶT BOM (Thay thế hàm cũ) ======
 
         private void PlaceBomb(Player player)
         {
             // kiểm tra giới hạn số bom
             if (player.ActiveBombs >= player.BombCount) return;
 
+            // ĐÃ SỬA: Dùng Math.Round để căn giữa quả bom vào ô gần nhất (Ví dụ 1.8 -> tròn thành 2)
+            int gridX = (int)Math.Round(player.X);
+            int gridY = (int)Math.Round(player.Y);
+
+            // Tính năng xịn: Ngăn không cho người chơi spam 2 quả bom trùng lên nhau tại 1 ô
+            if (Bombs.Any(b => (int)b.X == gridX && (int)b.Y == gridY)) return;
+
             var bomb = new Bomb
             {
                 OwnerId = player.Id,
-                X = (int)player.X,
-                Y = (int)player.Y,
+                X = gridX,
+                Y = gridY,
                 BlastRadius = player.BlastRadius
             };
 
@@ -234,12 +281,20 @@ namespace BomberServer.Game
         {
             foreach (var player in Players.Where(p => p.IsAlive))
             {
-                var tile = Map.GetTile((int)player.X, (int)player.Y);
+                // Dùng Round để khi người chơi chạm nhẹ vào rìa Item là nhặt được luôn
+                int gridX = (int)Math.Round(player.X);
+                int gridY = (int)Math.Round(player.Y);
+
+                var tile = Map.GetTile(gridX, gridY);
                 if (tile?.Item != null)
                 {
+                    // Thực hiện buff chỉ số (Hàm này bạn viết trong class Player.cs)
                     player.PickUpItem(tile.Item);
+
+                    // Xóa item khỏi Map ngay lập tức
                     tile.Item = null;
-                    Console.WriteLine($"{player.Name} nhặt item!");
+
+                    Console.WriteLine($"[Server] {player.Name} đã nhặt được PowerUp!");
                 }
             }
         }
@@ -264,17 +319,39 @@ namespace BomberServer.Game
 
         private async Task BroadcastState()
         {
+            // 1. Quét toàn bộ Map để gom các Item đang rớt trên đất
+            var activeItems = new List<Item>();
+            for (int x = 0; x < Map.Width; x++)
+            {
+                for (int y = 0; y < Map.Height; y++)
+                {
+                    var tile = Map.GetTile(x, y);
+                    if (tile != null && tile.Item != null)
+                    {
+                        activeItems.Add(tile.Item);
+                    }
+                }
+            }
+
+            // 2. Đóng gói dữ liệu gửi xuống Client
             var state = new GameStateDTO
             {
                 Players = Players,
                 Bombs = Bombs,
                 Explosions = Explosions,
                 Creeps = Creeps,
-                Tick = Tick
+                Tick = Tick,
+                // GỬI SEED VÀ DANH SÁCH GẠCH BỊ NỔ XUỐNG CHO CLIENT
+                MapSeed = _mapSeed,
+                DestroyedWalls = Map.DestroyedTiles.ToList(),
+
+                // --- ĐÂY LÀ DÒNG QUAN TRỌNG NHẤT ĐỂ HIỆN ITEM ---
+                Items = activeItems
             };
 
             await _broadcastCallback(state);
         }
+
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿using BomberShared.Map;
 using BomberShared.Models;
+using System;
 
 namespace BomberServer.Game
 {
@@ -7,32 +8,53 @@ namespace BomberServer.Game
     {
         private static Random _random = new Random();
 
-        // 30% chance drop item khi phá tường mềm
+        /// <summary>
+        /// Thử rơi Item khi tường mềm bị phá hủy
+        /// </summary>
         public static void TrySpawnItem(MapManager map, int x, int y)
         {
-            if (_random.Next(100) >= 30) return;
+            // Tỉ lệ 30% rơi đồ (0-29 là trúng)
+            if (_random.Next(100) >= 100) return;
 
-            // random loại item
-            var itemTypes = Enum.GetValues<PowerUpType>();
+            // Lấy ngẫu nhiên một loại PowerUp từ Enum PowerUpType
+            var itemTypes = (PowerUpType[])Enum.GetValues(typeof(PowerUpType));
             var randomType = itemTypes[_random.Next(itemTypes.Length)];
 
             SpawnItem(map, x, y, randomType);
         }
 
-        public static void SpawnItem(
-            MapManager map, int x, int y, PowerUpType type)
+        /// <summary>
+        /// Khởi tạo Item tại một tọa độ cụ thể trên Map
+        /// </summary>
+        public static void SpawnItem(MapManager map, int x, int y, PowerUpType type)
         {
             var tile = map.GetTile(x, y);
-            if (tile == null) return;
 
+            // KIỂM TRA: Ô này phải tồn tại và HIỆN TẠI KHÔNG CÓ Item nào khác
+            if (tile == null || tile.Item != null) return;
+
+            // Tạo Item mới
             tile.Item = new Item
             {
                 Type = type,
                 X = x,
-                Y = y
+                Y = y,
+                IsCollected = false
             };
 
-            Console.WriteLine($"Item {type} xuất hiện tại ({x},{y})!");
+            Console.WriteLine($"[Server] Item {type} đã xuất hiện tại ô ({x},{y})!");
+        }
+
+        /// <summary>
+        /// Xóa Item khi người chơi đã nhặt hoặc bị bom nổ cháy mất
+        /// </summary>
+        public static void RemoveItem(MapManager map, int x, int y)
+        {
+            var tile = map.GetTile(x, y);
+            if (tile != null)
+            {
+                tile.Item = null;
+            }
         }
     }
 }

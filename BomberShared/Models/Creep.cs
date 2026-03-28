@@ -5,6 +5,14 @@ namespace BomberShared.Models
 {
     public class Creep
     {
+        public enum MoveDirection
+        {
+            Down = 0,  // Hàng trên cùng: Nhìn xuống
+            Up = 1,    // Hàng 2: Quay lưng
+            Left = 2,  // Hàng 3: Nghiêng trái 
+            Right = 3  // Hàng 4: Nghiêng phải
+        }
+        public MoveDirection CurrentDirection { get; set; } = MoveDirection.Down;
         public string CreepID { get; set; } = Guid.NewGuid().ToString();
         public float X { get; set; }
         public float Y { get; set; }
@@ -90,6 +98,17 @@ namespace BomberShared.Models
             var next = _path[0];
             float dirX = next.X - X;
             float dirY = next.Y - Y;
+
+            // --- LOGIC QUẢN LÝ HƯỚNG NẰM Ở ĐÂY ---
+            if (Math.Abs(dirX) > Math.Abs(dirY))
+            {
+                CurrentDirection = dirX > 0 ? MoveDirection.Right : MoveDirection.Left;
+            }
+            else if (Math.Abs(dirY) > 0.01f) // Tránh rung lắc khi dirY quá nhỏ
+            {
+                CurrentDirection = dirY > 0 ? MoveDirection.Down : MoveDirection.Up;
+            }
+
             float length = (float)Math.Sqrt(dirX * dirX + dirY * dirY);
 
             if (length < 0.1f)
@@ -106,5 +125,6 @@ namespace BomberShared.Models
                 Y += dirY * Speed * deltaTime;
             }
         }
+
     }
 }

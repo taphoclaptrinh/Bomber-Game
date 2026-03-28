@@ -2,7 +2,10 @@
 using BomberClient.Screens;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Threading.Tasks; // <--- Nhớ thêm thư viện này
+using System;
+using System.Diagnostics;
+using System.IO; // Thêm thư viện này để kiểm tra file
+using System.Threading.Tasks;
 
 namespace BomberClient
 {
@@ -13,7 +16,6 @@ namespace BomberClient
         private NetworkManager _network;
 
         private enum GameState { Lobby, Playing, GameOver }
-        // Vẫn để mặc định là Lobby để tránh lỗi null, ta sẽ tự động chuyển cảnh rất nhanh
         private GameState _state = GameState.Lobby;
 
         private LobbyScreen _lobbyScreen;
@@ -23,7 +25,9 @@ namespace BomberClient
         private string _myPlayerId = "";
         private const string ServerUrl = "http://localhost:5215/gamehub";
 
-        // Cờ hiệu chuyển cảnh an toàn trên luồng chính
+        // --- BIẾN QUẢN LÝ SERVER ---
+        private Process? _serverProcess;
+
         private bool _shouldSwitchToGame = false;
 
         public Game1() : base()
@@ -32,27 +36,74 @@ namespace BomberClient
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
             _graphics.PreferredBackBufferWidth = 800;
-            _graphics.PreferredBackBufferHeight = 600;
+            _graphics.PreferredBackBufferHeight = 620;
             Window.Title = "Tày đặt bom (Test Mode)";
         }
 
         protected override void Initialize()
         {
+            // 1. TỰ ĐỘNG BẬT SERVER KHI MỞ GAME
+            StartServerProcess();
+
             _network = new NetworkManager(ServerUrl);
 
-            // --- ĐOẠN CODE BYPASS LOBBY ---
-            // Chạy ngầm việc kết nối để không làm đơ màn hình
             Task.Run(async () =>
             {
+                // Đợi một chút để Server kịp khởi động xong trước khi Connect
+                await Task.Delay(2000);
                 await _network.Connect();
-                // Tự động vào phòng "TESTROOM" với tên "AutoPlayer"
                 await _network.JoinRoom("TESTROOM", "AutoPlayer");
-
-                // Bật cờ hiệu để luồng chính tự động chuyển sang GameScreen
                 _shouldSwitchToGame = true;
             });
 
             base.Initialize();
+        }
+
+        private void StartServerProcess()
+        {
+            try
+            {
+                // Tên file Server của bạn (đảm bảo file này nằm cùng thư mục với Client)
+                string serverFileName = "BomberServer.exe";
+
+                // Kiểm tra xem Server có đang chạy sẵn chưa để tránh bật chồng
+                Process[] pname = Process.GetProcessesByName("BomberServer");
+                if (pname.Length > 0)
+                {
+                    _serverProcess = pname[0];
+                    return;
+                }
+
+                if (File.Exists(serverFileName))
+                {
+                    _serverProcess = new Process();
+                    _serverProcess.StartInfo.FileName = serverFileName;
+                    _serverProcess.StartInfo.UseShellExecute = true; // Hiện cửa sổ CMD
+                    _serverProcess.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Không thể khởi động Server: " + ex.Message);
+            }
+        }
+
+        // --- 2. TỰ ĐỘNG TẮT SERVER KHI THOÁT GAME ---
+        // Lưu ý: Đổi EventArgs thành ExitingEventArgs
+        protected override void OnExiting(object sender, ExitingEventArgs args)
+        {
+            if (_serverProcess != null && !_serverProcess.HasExited)
+            {
+                try
+                {
+                    _serverProcess.Kill(); // Tắt Server
+                }
+                catch
+                {
+                    // Tránh crash game nếu server đã tắt trước đó
+                }
+            }
+            base.OnExiting(sender, args);
         }
 
         protected override void LoadContent()
@@ -64,7 +115,6 @@ namespace BomberClient
 
         protected override void Update(GameTime gameTime)
         {
-            // Bắt cờ hiệu để chuyển cảnh an toàn trên luồng chính
             if (_shouldSwitchToGame)
             {
                 _shouldSwitchToGame = false;
@@ -88,6 +138,8 @@ namespace BomberClient
 
         protected override void Draw(GameTime gameTime)
         {
+            GraphicsDevice.Clear(Color.CornflowerBlue); // Thêm dòng này cho sạch màn hình
+
             switch (_state)
             {
                 case GameState.Lobby:
@@ -109,7 +161,6 @@ namespace BomberClient
             _gameScreen = new GameScreen(_network, _myPlayerId, GraphicsDevice);
             _gameScreen.LoadContent(Content);
             _gameScreen.OnGameOver += (message) => SwitchToGameOver(message);
-
             _state = GameState.Playing;
         }
 

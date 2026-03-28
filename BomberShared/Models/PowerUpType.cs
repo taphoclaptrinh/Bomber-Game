@@ -7,7 +7,7 @@ namespace BomberShared.Models
     public enum PowerUpType
     {
         ExtraBomb,
-        BlastUp,
+        RangeUp,
         SpeedUp
     }
 }
