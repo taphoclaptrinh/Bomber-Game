@@ -83,7 +83,6 @@ namespace BomberServer.Game
         private async Task GameTick()
         {
             Tick++;
-            Console.WriteLine("Server đang chạy Tick: " + Tick);
 
             // xử lý theo thứ tự
             ProcessInputQueue();
@@ -250,10 +249,10 @@ namespace BomberServer.Game
         // ====== CREEP ======
 
         private void UpdateCreeps()
-        { 
+        {
 
-            CreepAI.UpdateAll(Creeps, Players, Map, DeltaTime, Tick);
-        
+            CreepAI.UpdateAll(Creeps, Players, Map, this, DeltaTime, Tick);
+
             //foreach (var creep in Creeps.Where(c => c.IsAlive))
             //{
             //    // tìm player gần nhất còn sống
@@ -350,6 +349,27 @@ namespace BomberServer.Game
             };
 
             await _broadcastCallback(state);
+        }
+
+        public void PlaceCreepBomb(Creep creep)
+        {
+            int gridX = (int)Math.Round(creep.X);
+            int gridY = (int)Math.Round(creep.Y);
+
+            // Ngăn spam bom chồng lên nhau
+            if (Bombs.Any(b => (int)b.X == gridX && (int)b.Y == gridY)) return;
+
+            var bomb = new Bomb
+            {
+                OwnerId = "CREEP_" + Guid.NewGuid().ToString(), // ID giả để phân biệt với người chơi
+                X = gridX,
+                Y = gridY,
+                BlastRadius = creep.BlastRadius,
+                FuseTime = 2.0f // Bom của quái có thể nổ nhanh hơn để tăng độ khó
+            };
+
+            Bombs.Add(bomb);
+            Console.WriteLine($"[Server] Quái vật đã đặt bom tại ({gridX}, {gridY})!");
         }
 
     }

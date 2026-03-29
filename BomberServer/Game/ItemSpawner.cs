@@ -14,7 +14,7 @@ namespace BomberServer.Game
         public static void TrySpawnItem(MapManager map, int x, int y)
         {
             // Tỉ lệ 30% rơi đồ (0-29 là trúng)
-            if (_random.Next(100) >= 100) return;
+            if (_random.Next(100) >= 30) return;
 
             // Lấy ngẫu nhiên một loại PowerUp từ Enum PowerUpType
             var itemTypes = (PowerUpType[])Enum.GetValues(typeof(PowerUpType));

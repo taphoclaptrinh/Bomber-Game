@@ -18,6 +18,12 @@ namespace BomberShared.Models
         public float Y { get; set; }
         public float Speed { get; set; } = 3.9f;
         public bool IsAlive { get; set; } = true;
+        public int MaxBombs { get; set; } = 1;
+        public int ActiveBombs { get; set; } = 0;
+        public int BlastRadius { get; set; } = 1;
+        public float BombCooldown { get; set; } = 3.0f; // 3 giây mới được đặt 1 quả
+        public float LastBombTime { get; set; } = 0;
+        
 
         public void MoveTowards(float targetX, float targetY)
         {

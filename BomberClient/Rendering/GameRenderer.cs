@@ -114,7 +114,7 @@ namespace BomberClient.Rendering
             // 2. Vẽ Item, Bom, Vụ nổ
             foreach (var bomb in state.Bombs) DrawBomb(spriteBatch, bomb);
             foreach (var explosion in state.Explosions) DrawExplosion(spriteBatch, explosion);
-            foreach (var creep in state.Creeps) DrawCreep(spriteBatch, creep);
+            foreach (var creep in state.Creeps.Where(c=>c.IsAlive)) DrawCreep(spriteBatch, creep);
 
             // 3. Vẽ Player (Vẽ sau cùng để nhân vật đè lên bom/vụ nổ)
             foreach (var player in state.Players.Where(p => p.IsAlive))

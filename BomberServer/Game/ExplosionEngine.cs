@@ -46,6 +46,13 @@ namespace BomberServer.Game
                     if (tile.Type == TileType.Wall)
                         break;
 
+                    if(tile != null && tile.Item != null)
+                    {
+                        string itemName = tile.Item.Type.ToString();
+                        Console.WriteLine("$\"!!! BOOM !!! Item {itemName} tai o ({x},{y}) da bi thieu rui.\"");
+                        tile.Item = null;
+                    }
+
                     // tường mềm → phá rồi dừng
                     if (tile.Type == TileType.SoftWall)
                     {
@@ -92,16 +99,18 @@ namespace BomberServer.Game
 
         // ====== KIỂM TRA PLAYER BỊ TRÚNG ======
 
-        public static void CheckPlayerHits(
-            List<Player> players, Explosion explosion)
+        public static void CheckPlayerHits(List<Player> players, Explosion explosion)
         {
             foreach (var player in players.Where(p => p.IsAlive))
             {
-                // ĐÃ SỬA: Dùng .Any() để so sánh tọa độ của Position với Player
-                if (explosion.AffectedTiles.Any(t => (int)t.X == (int)player.X && (int)t.Y == (int)player.Y))
+                // Dùng Math.Round để xác định ô gạch mà Player đang đứng chiếm phần lớn diện tích
+                int playerGridX = (int)Math.Round(player.X);
+                int playerGridY = (int)Math.Round(player.Y);
+
+                // Kiểm tra xem ô đó có nằm trong danh sách các ô bị nổ không
+                if (explosion.AffectedTiles.Any(t => (int)t.X == playerGridX && (int)t.Y == playerGridY))
                 {
                     player.Die();
-                    Console.WriteLine($"{player.Name} bị trúng bom!");
                 }
             }
         }
@@ -117,7 +126,6 @@ namespace BomberServer.Game
                 if (explosion.AffectedTiles.Any(t => (int)t.X == (int)creep.X && (int)t.Y == (int)creep.Y))
                 {
                     creep.Die();
-                    Console.WriteLine("Creep bị tiêu diệt!");
                 }
             }
         }

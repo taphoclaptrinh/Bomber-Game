@@ -11,24 +11,42 @@ namespace BomberServer.Game
             List<Creep> creeps,
             List<Player> players,
             MapManager map,
+            GameManager gameManager,
             float deltaTime,
             long tick)
         {
             foreach (var creep in creeps.Where(c => c.IsAlive))
             {
-                // tìm player gần nhất còn sống
+                // 1. Tìm player gần nhất (Chỉ tìm 1 lần duy nhất ở đây)
                 var target = FindNearestPlayer(creep, players);
                 if (target == null) continue;
 
-                // tính lại đường đi mỗi 60 tick (1 giây)
+                // 2. Tính lại đường đi mỗi giây
                 if (tick % 60 == 0)
-                    creep.FindPath(map, (int)target.X, (int)target.Y);
+                    creep.FindPath(map, (int)Math.Round(target.X), (int)Math.Round(target.Y));
 
-                // di chuyển theo đường đi
+                // 3. Di chuyển
                 creep.MoveAlongPath(deltaTime);
 
-                // kiểm tra creep có đụng player không
-                CheckCreepHitPlayer(creep, players);
+                // 4. Xử lý đặt bom
+                creep.LastBombTime += deltaTime;
+
+                // Tính khoảng cách chính xác từ Creep tới Target
+                float dx = target.X - creep.X;
+                float dy = target.Y - creep.Y;
+                float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                // ĐIỀU KIỆN: Khoảng cách gần (dưới 1.2 ô) và đã hồi chiêu bom
+                if (distance < 1.2f && creep.LastBombTime >= creep.BombCooldown)
+                {
+                    gameManager.PlaceCreepBomb(creep);
+                    creep.LastBombTime = 0;
+
+                    int escapeX = (int)Math.Round(creep.X + (creep.X - target.X) * 2);
+                    int escapeY = (int)Math.Round(creep.Y + (creep.Y - target.Y) * 2);
+
+                    creep.FindPath(map, escapeX, escapeY);
+                }
             }
         }
 
@@ -45,25 +63,5 @@ namespace BomberServer.Game
                 .FirstOrDefault();
         }
 
-        // ====== CREEP ĐỤNG PLAYER → PLAYER CHẾT ======
-
-        private static void CheckCreepHitPlayer(
-            Creep creep, List<Player> players)
-        {
-            foreach (var player in players.Where(p => p.IsAlive))
-            {
-                // tính khoảng cách giữa creep và player
-                float distance = Math.Abs(creep.X - player.X)
-                               + Math.Abs(creep.Y - player.Y);
-
-                // nếu quá gần → player chết
-                if (distance < 0.8f)
-                {
-                    player.Die();
-                    Console.WriteLine(
-                        $"{player.Name} bị creep tiêu diệt!");
-                }
-            }
-        }
     }
 }
