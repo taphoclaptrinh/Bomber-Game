@@ -16,6 +16,7 @@ namespace BomberServer.Game
         public long Tick { get; set; } = 0;
         private int _mapSeed;
 
+
         // hàng đợi input từ clients
         private Queue<PlayerInputPacket> _inputQueue = new();
 
@@ -302,16 +303,18 @@ namespace BomberServer.Game
 
         private void CheckWinCondition()
         {
-            //var alivePlayers = Players.Where(p => p.IsAlive).ToList();
+            var alivePlayers = Players.Where(p => p.IsAlive).ToList();
+            var aliveCreeps = Creeps.Where(c => c.IsAlive).ToList();
 
-            //if (alivePlayers.Count <= 1)
-            //{
-            //    var winner = alivePlayers.FirstOrDefault();
-            //    Console.WriteLine(winner != null
-            //        ? $"{winner.Name} thắng!"
-            //        : "Hòa!");
-            //    Stop();
-            //}
+
+            if (aliveCreeps.Count <= 0)
+            {
+                var winner = alivePlayers.FirstOrDefault();
+                Console.WriteLine(winner != null
+                    ? $"{winner.Name} thắng!"
+                    : "Hòa!");
+                Stop();
+            }
         }
 
         // ====== BROADCAST ======

@@ -151,3 +151,96 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:item_bombsize.gif
+
+#begin boss_down.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:boss_down.png
+
+#begin boss_left.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:boss_left.png
+
+#begin boss_right.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:boss_right.png
+
+#begin boss_up.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:boss_up.png
+
+#-------------------------------------------
+# ÂM THANH HIỆU ỨNG (SoundEffect - .wav)
+#-------------------------------------------
+
+#begin res_sound_bomb_bang.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_bomb_bang.wav
+
+#begin res_sound_bomDrink.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_bomDrink.wav
+
+#begin res_sound_foot.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_foot.wav
+
+#begin res_sound_item.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_item.wav
+
+#begin res_sound_monster_die.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_monster_die.wav
+
+#begin res_sound_win.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_win.wav
+
+
+#begin res_sound_lose.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:res_sound_lose.wav
+
+#begin newbomb.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/build:newbomb.wav

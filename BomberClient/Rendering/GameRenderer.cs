@@ -2,9 +2,12 @@
 using BomberShared.Models;
 using BomberShared.Network;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Media;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -39,6 +42,20 @@ namespace BomberClient.Rendering
         private Texture2D _itemShoe;     // Cho item_shoe.gif (Tăng tốc độ chạy)
         private Texture2D _itemBombSize; // Cho item_bombsize.gif (Tăng tầm nổ - bình thuốc)
 
+        // ---Sound---
+        private SoundEffect _sndBombBang;
+        private SoundEffect _sndBombDrink;
+        private SoundEffect _sndFoot;
+        private SoundEffect _sndItem;
+        private SoundEffect _sndMonsterDie;
+        private SoundEffect _sndWin;
+        private SoundEffect _sndLose;
+        private SoundEffect _sndNewBomb;
+        private SoundEffectInstance _footInstance;
+
+        // Biến để tránh phát tiếng nổ quá nhiều lần
+        private HashSet<string> _playedExplosions = new HashSet<string>();
+
         private float _bombPulseTimer;
         private int _currentBombFrame;
 
@@ -60,10 +77,10 @@ namespace BomberClient.Rendering
             try { _explosionSprite = content.Load<Texture2D>("bombbang"); }
             catch { _explosionSprite = CreateColorTexture(graphicsDevice, Color.DeepSkyBlue); }
 
-            try { _creepBack = content.Load<Texture2D>("creep_back"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepRight = content.Load<Texture2D>("creep_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepLeft = content.Load<Texture2D>("creep_left"); } catch { _creepLeft = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepFront = content.Load<Texture2D>("creep_front"); } catch { _creepFront = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepBack = content.Load<Texture2D>("boss_down"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepRight = content.Load<Texture2D>("boss_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepLeft = content.Load<Texture2D>("boss_left"); } catch { _creepLeft = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepFront = content.Load<Texture2D>("boss_up"); } catch { _creepFront = CreateColorTexture(graphicsDevice, Color.Red); }
 
             try { _itemBomb = content.Load<Texture2D>("item_bomb"); }
             catch { _itemBomb = CreateColorTexture(graphicsDevice, Color.Blue); }
@@ -73,7 +90,26 @@ namespace BomberClient.Rendering
 
             try { _itemBombSize = content.Load<Texture2D>("item_bombsize"); }
             catch { _itemBombSize = CreateColorTexture(graphicsDevice, Color.Cyan); }
+
+            _sndBombBang = content.Load<SoundEffect>("res_sound_bomb_bang");
+            _sndBombDrink = content.Load<SoundEffect>("res_sound_bomDrink");
+            _sndFoot = content.Load<SoundEffect>("res_sound_foot");
+            _sndFoot = content.Load<SoundEffect>("res_sound_foot");
+            _sndItem = content.Load<SoundEffect>("res_sound_item");
+            _sndMonsterDie = content.Load<SoundEffect>("res_sound_monster_die");
+            _sndWin = content.Load<SoundEffect>("res_sound_win");
+            _sndLose = content.Load<SoundEffect>("res_sound_lose");
+            _sndNewBomb = content.Load<SoundEffect>("newbomb");
         }
+
+        public void PlayBombExplosion() => _sndBombBang?.Play();
+        public void PlayPlayerDie() => _sndBombDrink?.Play();
+        public void PlayFootstep() => _sndFoot?.Play(0.4f, 0f, 0f); // Để âm lượng nhỏ 40% cho đỡ ồn
+        public void PlayPickItem() => _sndItem?.Play();
+        public void PlayMonsterDie() => _sndMonsterDie?.Play();
+        public void PlayWinSound() => _sndWin?.Play();
+        public void PlayLoseSound() => _sndLose?.Play();
+        public void PlayNewBombSound() => _sndNewBomb?.Play();
 
         public void Update(GameTime gameTime)
         {
