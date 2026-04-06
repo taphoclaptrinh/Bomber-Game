@@ -11,7 +11,7 @@ namespace BomberShared.Models
         public float X { get; set; }
         public float Y { get; set; }
         public int BlastRadius { get; set; } = 1;
-        public float FuseTime { get; set; } = 3f;
+        public float FuseTime { get; set; } = 2f;
         public bool IsDetonated { get; set; } = false;
         public void Update(float deltaTime) {
             FuseTime -= deltaTime;

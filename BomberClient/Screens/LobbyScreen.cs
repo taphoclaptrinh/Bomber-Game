@@ -30,10 +30,28 @@ namespace BomberClient.Screens
         {
             _network = network;
 
-            _network.OnPlayerJoined += (name) =>
+            //_network.OnPlayerJoined += (name) =>
+            //{
+            //    _playersInRoom.Add(name);
+            //    _statusMessage = $"{name} da vao phong!";
+            //};
+
+            _network.OnNameTaken += () =>
             {
-                _playersInRoom.Add(name);
-                _statusMessage = $"{name} da vao phong!";
+                _statusMessage = "Ten nay da co nguoi su dung trong phong!";
+                _isConnecting = false; // Mở khóa để người dùng nhập lại tên khác
+            };
+
+            _network.OnRoomFull += () =>
+            {
+                _statusMessage = "Phong da day (Toi da 4 nguoi)!";
+                _isConnecting = false;
+            };
+
+            _network.OnUpdatePlayerList += (names) =>
+            {
+                _playersInRoom.Clear();     // Xóa sạch rác cũ (quan trọng nhất!)
+                _playersInRoom.AddRange(names); // Chép đè danh sách chuẩn từ Server
             };
 
             _network.OnPlayerLeft += (id) =>
@@ -51,6 +69,7 @@ namespace BomberClient.Screens
                 _statusMessage = "Phong da day!";
                 _isConnecting = false;
             };
+
         }
 
         // ====== LOAD CONTENT ======
@@ -59,7 +78,7 @@ namespace BomberClient.Screens
             Microsoft.Xna.Framework.Content.ContentManager content)
         {
             _font = content.Load<SpriteFont>("Fonts/DefaultFont");
-            _background = content.Load<Texture2D>("Background");
+            _background = content.Load<Texture2D>("Sprites/Background");
         }
 
         // ====== UPDATE ======
@@ -229,6 +248,18 @@ namespace BomberClient.Screens
                 }
             }
         }
+
+        // Thêm hàm này để Game1 gọi mỗi khi reset
+        public void ResetToDefault()
+        {
+            _playerName = "";        // Xóa tên cũ
+            _roomId = "";            // Xóa mã phòng cũ
+            _playersInRoom.Clear();  // Xóa danh sách người chơi cũ trên màn hình
+            _activeField = 0;        // Nháy con trỏ ở ô Tên
+            _isConnecting = false;   // Mở khóa để có thể nhấn Enter
+            _statusMessage = "Nhap ten va ma phong de bat dau!";
+        }
+
     }
 }
 

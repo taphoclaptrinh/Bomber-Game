@@ -1,4 +1,3 @@
-
 #----------------------------- Global Properties ----------------------------#
 
 /outputDir:bin/$(Platform)
@@ -20,227 +19,164 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/DefaultFont.spritefont
 
-#begin Background.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Background.png
-
-#begin Brick.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Brick.png
-
-#begin Stone.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Stone.png
-
-#begin PlayerSheet.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:PlayerSheet.png
-
-#begin Way.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Way.png
-
-#begin PlayerSheet2.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:PlayerSheet2.png
-
-#begin bombbang.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:bombbang.png
-
-#begin bomb.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:bomb.png
-
-#begin item_shoe.gif
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:item_shoe.gif
-
-#begin item_bomb.gif
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:item_bomb.gif
-
-#begin item_bombsize.gif
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:item_bombsize.gif
-
-#begin boss_down.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:boss_down.png
-
-#begin boss_left.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:boss_left.png
-
-#begin boss_right.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:boss_right.png
-
-#begin boss_up.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:boss_up.png
-
 #-------------------------------------------
-# ÂM THANH HIỆU ỨNG (SoundEffect - .wav)
+# HÌNH ẢNH (Sprites Folder)
 #-------------------------------------------
 
-#begin res_sound_bomb_bang.wav
+#begin Sprites/Background.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/Background.png
+
+#begin Sprites/Brick.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/Brick.png
+
+#begin Sprites/Stone.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/Stone.png
+
+#begin Sprites/PlayerSheet.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/PlayerSheet.png
+
+#begin Sprites/Way.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/Way.png
+
+#begin Sprites/PlayerSheet2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/PlayerSheet2.png
+
+#begin Sprites/bombbang.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/bombbang.png
+
+#begin Sprites/bomb.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/bomb.png
+
+#begin Sprites/item_shoe.gif
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/item_shoe.gif
+
+#begin Sprites/item_bomb.gif
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/item_bomb.gif
+
+#begin Sprites/item_bombsize.gif
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/item_bombsize.gif
+
+#begin Sprites/boss_down.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/boss_down.png
+
+#begin Sprites/boss_left.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/boss_left.png
+
+#begin Sprites/boss_right.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/boss_right.png
+
+#begin Sprites/boss_up.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/boss_up.png
+
+#-------------------------------------------
+# HÌNH ẢNH WIN/LOSE
+#-------------------------------------------
+
+#begin Sprites/victory_badge.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/victory_badge.png
+
+#begin Sprites/defeat_badge.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:TextureFormat=Color
+/build:Sprites/defeat_badge.png
+
+#-------------------------------------------
+# ÂM THANH (Sounds Folder)
+#-------------------------------------------
+
+#--- Nhạc nền (Song - Mp3) ---
+#begin Sounds/res_sound_background.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Sounds/res_sound_background.mp3
+
+#--- Hiệu ứng (SoundEffect - Wav) ---
+#begin Sounds/res_sound_bomb_bang.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_bomb_bang.wav
+/build:Sounds/res_sound_bomb_bang.wav
 
-#begin res_sound_bomDrink.wav
+#begin Sounds/res_sound_bomDrink.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_bomDrink.wav
+/build:Sounds/res_sound_bomDrink.wav
 
-#begin res_sound_foot.wav
+#begin Sounds/res_sound_foot.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_foot.wav
+/build:Sounds/res_sound_foot.wav
 
-#begin res_sound_item.wav
+#begin Sounds/res_sound_item.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_item.wav
+/build:Sounds/res_sound_item.wav
 
-#begin res_sound_monster_die.wav
+#begin Sounds/res_sound_monster_die.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_monster_die.wav
+/build:Sounds/res_sound_monster_die.wav
 
-#begin res_sound_win.wav
+#begin Sounds/res_sound_win.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_win.wav
+/build:Sounds/res_sound_win.wav
 
-
-#begin res_sound_lose.wav
+#begin Sounds/res_sound_lose.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:res_sound_lose.wav
+/build:Sounds/res_sound_lose.wav
 
-#begin newbomb.wav
+#begin Sounds/newbomb.wav
 /importer:WavImporter
 /processor:SoundEffectProcessor
-/build:newbomb.wav
+/build:Sounds/newbomb.wav

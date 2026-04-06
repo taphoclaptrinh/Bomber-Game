@@ -31,17 +31,37 @@ namespace BomberShared.Models
 
         //=====Methods=====
 
-        public void Move(int deltaX, int deltaY)
+        public void Move(int deltaX, int deltaY, Func<float, float, bool> isColliding)
         {
-            if (deltaY > 0) CurrentDirection = MoveDirection.Down; // Đi xuống
-            else if (deltaY < 0) CurrentDirection = MoveDirection.Up; // Đi lên
-            else if (deltaX > 0) CurrentDirection = MoveDirection.Right; // Sang phải
-            else if (deltaX < 0) CurrentDirection = MoveDirection.Left; // Sang trái
+            // 1. Cập nhật hướng (giữ nguyên logic của cậu)
+            if (deltaY > 0) CurrentDirection = MoveDirection.Down;
+            else if (deltaY < 0) CurrentDirection = MoveDirection.Up;
+            else if (deltaX > 0) CurrentDirection = MoveDirection.Right;
+            else if (deltaX < 0) CurrentDirection = MoveDirection.Left;
 
-            // 0.1f là thời gian delay giữa các gói tin
             float deltaTime = 0.1f;
-            X += deltaX * (Speed * deltaTime);
-            Y += deltaY * (Speed * deltaTime);
+            float stepX = deltaX * (Speed * deltaTime);
+            float stepY = deltaY * (Speed * deltaTime);
+
+            // 2. TÁCH BIỆT XỬ LÝ TRỤC X
+            if (deltaX != 0)
+            {
+                // Nếu không va chạm tại tọa độ X mới, thì mới cho phép cập nhật X
+                if (!isColliding(X + stepX, Y))
+                {
+                    X += stepX;
+                }
+            }
+
+            // 3. TÁCH BIỆT XỬ LÝ TRỤC Y
+            if (deltaY != 0)
+            {
+                // Nếu không va chạm tại tọa độ Y mới, thì mới cho phép cập nhật Y
+                if (!isColliding(X, Y + stepY))
+                {
+                    Y += stepY;
+                }
+            }
         }
         public void PlaceBomb() {
             if (ActiveBombs < BombCount)

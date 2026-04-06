@@ -9,6 +9,8 @@ namespace BomberServer.Game
         public List<Player> Players { get; set; } = new();
         public int MaxPlayers { get; set; } = 4;
         public bool IsStarted { get; set; } = false;
+        public List<Bomb> Bombs { get; set; } = new();
+        public List<Explosion> Explosions { get; set; } = new();
         public GameManager? GameManager { get; set; }
 
         public GameRoom(string roomId)
@@ -34,9 +36,16 @@ namespace BomberServer.Game
             Players.Add(player);
         }
 
-        public void RemovePlayer(string playerId)
+        public void RemovePlayer(string playerId, string playerName = "")
         {
+            // 1. Xóa theo ID (Cách cũ - vẫn giữ)
             Players.RemoveAll(p => p.Id == playerId);
+
+            // 2. Xóa theo Tên (Nếu có truyền vào) - Đây là chìa khóa!
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                Players.RemoveAll(p => p.Name == playerName);
+            }
         }
 
         // đủ 2 người trở lên là bắt đầu được (Đang để >= 1 để test 1 người)

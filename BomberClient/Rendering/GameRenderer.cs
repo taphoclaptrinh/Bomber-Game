@@ -62,49 +62,48 @@ namespace BomberClient.Rendering
         public void LoadContent(ContentManager content, GraphicsDevice graphicsDevice)
         {
             // Load Player và Map
-            try { _playerSprite = content.Load<Texture2D>("PlayerSheet2"); }
+            try { _playerSprite = content.Load<Texture2D>("Sprites/PlayerSheet2"); }
             catch { _playerSprite = CreateColorTexture(graphicsDevice, Color.Blue); }
 
-            try { _tileWall = content.Load<Texture2D>("Stone"); } catch { _tileWall = CreateColorTexture(graphicsDevice, Color.Gray); }
-            try { _tileSoftWall = content.Load<Texture2D>("Brick"); } catch { _tileSoftWall = CreateColorTexture(graphicsDevice, Color.Brown); }
-            try { _tileEmpty = content.Load<Texture2D>("Way"); } catch { _tileEmpty = CreateColorTexture(graphicsDevice, Color.LawnGreen); }
+            try { _tileWall = content.Load<Texture2D>("Sprites/Stone"); } catch { _tileWall = CreateColorTexture(graphicsDevice, Color.Gray); }
+            try { _tileSoftWall = content.Load<Texture2D>("Sprites/Brick"); } catch { _tileSoftWall = CreateColorTexture(graphicsDevice, Color.Brown); }
+            try { _tileEmpty = content.Load<Texture2D>("Sprites/Way"); } catch { _tileEmpty = CreateColorTexture(graphicsDevice, Color.LawnGreen); }
 
             // Load Bomb (File 45x225 của bạn)
-            try { _bombSprite = content.Load<Texture2D>("bomb"); }
+            try { _bombSprite = content.Load<Texture2D>("Sprites/bomb"); }
             catch { _bombSprite = CreateColorTexture(graphicsDevice, Color.Black); }
 
             // Load Vụ nổ xanh (bombbang.png)
-            try { _explosionSprite = content.Load<Texture2D>("bombbang"); }
+            try { _explosionSprite = content.Load<Texture2D>("Sprites/bombbang"); }
             catch { _explosionSprite = CreateColorTexture(graphicsDevice, Color.DeepSkyBlue); }
 
-            try { _creepBack = content.Load<Texture2D>("boss_down"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepRight = content.Load<Texture2D>("boss_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepLeft = content.Load<Texture2D>("boss_left"); } catch { _creepLeft = CreateColorTexture(graphicsDevice, Color.Red); }
-            try { _creepFront = content.Load<Texture2D>("boss_up"); } catch { _creepFront = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepBack = content.Load<Texture2D>("Sprites/boss_down"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepRight = content.Load<Texture2D>("Sprites/boss_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepLeft = content.Load<Texture2D>("Sprites/boss_left"); } catch { _creepLeft = CreateColorTexture(graphicsDevice, Color.Red); }
+            try { _creepFront = content.Load<Texture2D>("Sprites/boss_up"); } catch { _creepFront = CreateColorTexture(graphicsDevice, Color.Red); }
 
-            try { _itemBomb = content.Load<Texture2D>("item_bomb"); }
+            try { _itemBomb = content.Load<Texture2D>("Sprites/item_bomb"); }
             catch { _itemBomb = CreateColorTexture(graphicsDevice, Color.Blue); }
 
-            try { _itemShoe = content.Load<Texture2D>("item_shoe"); }
+            try { _itemShoe = content.Load<Texture2D>("Sprites/item_shoe"); }
             catch { _itemShoe = CreateColorTexture(graphicsDevice, Color.Red); }
 
-            try { _itemBombSize = content.Load<Texture2D>("item_bombsize"); }
+            try { _itemBombSize = content.Load<Texture2D>("Sprites/item_bombsize"); }
             catch { _itemBombSize = CreateColorTexture(graphicsDevice, Color.Cyan); }
 
-            _sndBombBang = content.Load<SoundEffect>("res_sound_bomb_bang");
-            _sndBombDrink = content.Load<SoundEffect>("res_sound_bomDrink");
-            _sndFoot = content.Load<SoundEffect>("res_sound_foot");
-            _sndFoot = content.Load<SoundEffect>("res_sound_foot");
-            _sndItem = content.Load<SoundEffect>("res_sound_item");
-            _sndMonsterDie = content.Load<SoundEffect>("res_sound_monster_die");
-            _sndWin = content.Load<SoundEffect>("res_sound_win");
-            _sndLose = content.Load<SoundEffect>("res_sound_lose");
-            _sndNewBomb = content.Load<SoundEffect>("newbomb");
+            _sndBombBang = content.Load<SoundEffect>("Sounds/res_sound_bomb_bang");
+            _sndBombDrink = content.Load<SoundEffect>("Sounds/res_sound_bomDrink");
+            //_sndFoot = content.Load<SoundEffect>("res_sound_foot");
+            _sndItem = content.Load<SoundEffect>("Sounds/res_sound_item");
+            _sndMonsterDie = content.Load<SoundEffect>("Sounds/res_sound_monster_die");
+            _sndWin = content.Load<SoundEffect>("Sounds/res_sound_win");
+            _sndLose = content.Load<SoundEffect>("Sounds/res_sound_lose");
+            _sndNewBomb = content.Load<SoundEffect>("Sounds/newbomb");
         }
 
         public void PlayBombExplosion() => _sndBombBang?.Play();
         public void PlayPlayerDie() => _sndBombDrink?.Play();
-        public void PlayFootstep() => _sndFoot?.Play(0.4f, 0f, 0f); // Để âm lượng nhỏ 40% cho đỡ ồn
+        //public void PlayFootstep() => _sndFoot?.Play(0.4f, 0f, 0f); // Để âm lượng nhỏ 40% cho đỡ ồn
         public void PlayPickItem() => _sndItem?.Play();
         public void PlayMonsterDie() => _sndMonsterDie?.Play();
         public void PlayWinSound() => _sndWin?.Play();

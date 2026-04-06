@@ -1,7 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using BomberShared.Network;
+﻿using BomberShared.Network;
 using Microsoft.AspNetCore.SignalR.Client;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BomberClient.Network
 {
@@ -14,10 +15,12 @@ namespace BomberClient.Network
 
         // events để GameScreen lắng nghe
         public event Action<GameStateDTO>? OnStateReceived;
-        public event Action<string>? OnPlayerJoined;
+        //public event Action<string>? OnPlayerJoined;
         public event Action<string>? OnPlayerLeft;
         public event Action? OnGameStarted;
+        public event Action<List<string>>? OnUpdatePlayerList;
         public event Action? OnRoomFull;
+        public event Action? OnNameTaken;
 
         // ====== CONSTRUCTOR ======
         public NetworkManager(string serverUrl)
@@ -83,9 +86,13 @@ namespace BomberClient.Network
             });
 
             // có player mới vào phòng
-            _connection.On<string>("PlayerJoined", (name) =>
-            {
-                OnPlayerJoined?.Invoke(name);
+            //_connection.On<string>("PlayerJoined", (name) =>
+            //{
+            //    OnPlayerJoined?.Invoke(name);
+            //});
+
+            _connection.On<List<string>>("UpdatePlayerList", (names) => {
+                OnUpdatePlayerList?.Invoke(names);
             });
 
             // có player rời phòng
@@ -105,6 +112,11 @@ namespace BomberClient.Network
             {
                 OnRoomFull?.Invoke();
             });
+
+            _connection.On("OnNameTaken", () => {
+                OnNameTaken?.Invoke();
+            });
+
         }
 
         // ====== HELPER ======
