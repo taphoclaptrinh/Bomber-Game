@@ -143,7 +143,7 @@ namespace BomberClient.Screens
 
             // tiêu đề
             spriteBatch.DrawString(_font,
-                "BOMBERMAN ONLINE",
+                "Tay Dat Bom",
                 new Vector2(250, 50),
                 Color.Yellow);
 
