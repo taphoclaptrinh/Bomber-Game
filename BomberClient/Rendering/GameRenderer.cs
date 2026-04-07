@@ -42,6 +42,13 @@ namespace BomberClient.Rendering
         private Texture2D _itemShoe;     // Cho item_shoe.gif (Tăng tốc độ chạy)
         private Texture2D _itemBombSize; // Cho item_bombsize.gif (Tăng tầm nổ - bình thuốc)
 
+        private Texture2D _texCenter;
+        // Tạo 4 mảng, mỗi mảng chứa 5 tấm ảnh cho 4 hướng
+        private Texture2D[] _texUp = new Texture2D[5];
+        private Texture2D[] _texDown = new Texture2D[5];
+        private Texture2D[] _texLeft = new Texture2D[5];
+        private Texture2D[] _texRight = new Texture2D[5];
+
         // ---Sound---
         private SoundEffect _sndBombBang;
         private SoundEffect _sndBombDrink;
@@ -73,9 +80,9 @@ namespace BomberClient.Rendering
             try { _bombSprite = content.Load<Texture2D>("Sprites/bomb"); }
             catch { _bombSprite = CreateColorTexture(graphicsDevice, Color.Black); }
 
-            // Load Vụ nổ xanh (bombbang.png)
-            try { _explosionSprite = content.Load<Texture2D>("Sprites/bombbang"); }
-            catch { _explosionSprite = CreateColorTexture(graphicsDevice, Color.DeepSkyBlue); }
+            //// Load Vụ nổ xanh (bombbang.png)
+            //try { _explosionSprite = content.Load<Texture2D>("Sprites/bombbang"); }
+            //catch { _explosionSprite = CreateColorTexture(graphicsDevice, Color.DeepSkyBlue); }
 
             try { _creepBack = content.Load<Texture2D>("Sprites/boss_down"); } catch { _creepBack = CreateColorTexture(graphicsDevice, Color.Red); }
             try { _creepRight = content.Load<Texture2D>("Sprites/boss_right"); } catch { _creepRight = CreateColorTexture(graphicsDevice, Color.Red); }
@@ -90,6 +97,17 @@ namespace BomberClient.Rendering
 
             try { _itemBombSize = content.Load<Texture2D>("Sprites/item_bombsize"); }
             catch { _itemBombSize = CreateColorTexture(graphicsDevice, Color.Cyan); }
+
+            _texCenter = content.Load<Texture2D>("Sprites/bombbang");
+
+            // 2. Nạp 5 cấp độ cho mỗi hướng theo đúng tên file bombbang_...
+            for (int i = 1; i <= 5; i++)
+            {
+                _texUp[i - 1] = content.Load<Texture2D>($"Sprites/bombbang_up{i}");
+                _texDown[i - 1] = content.Load<Texture2D>($"Sprites/bombbang_down{i}");
+                _texLeft[i - 1] = content.Load<Texture2D>($"Sprites/bombbang_left{i}");
+                _texRight[i - 1] = content.Load<Texture2D>($"Sprites/bombbang_right{i}");
+            }
 
             _sndBombBang = content.Load<SoundEffect>("Sounds/res_sound_bomb_bang");
             _sndBombDrink = content.Load<SoundEffect>("Sounds/res_sound_bomDrink");
@@ -194,14 +212,94 @@ namespace BomberClient.Rendering
             // Dòng này sẽ in số khung hình đang vẽ ra cửa sổ Output của Visual Studio
             System.Diagnostics.Debug.WriteLine($"Drawing Bomb Frame: {_currentBombFrame}");
         }
-        private void DrawExplosion(SpriteBatch spriteBatch, Explosion explosion)
+        public void DrawExplosion(SpriteBatch spriteBatch, Explosion explosion)
         {
+            if (explosion.AffectedTiles == null || explosion.AffectedTiles.Count == 0) return;
+
+            var center = explosion.AffectedTiles[0];
+
+            // ==========================================
+            // 1. VẼ TÂM NỔ (Scale ảnh 29x29 lên khít ô lưới)
+            // ==========================================
+            Rectangle centerDestRect = new Rectangle(
+                (int)(center.X * TileSize),
+                (int)(center.Y * TileSize),
+                TileSize,
+                TileSize
+            );
+            // Bỏ sourceRect đi vì ảnh gốc giờ đã là 1 cục lõi duy nhất
+            spriteBatch.Draw(_texCenter, centerDestRect, Color.White);
+
+
+            // ==========================================
+            // 2. ĐẾM SỐ Ô NỔ THỰC TẾ 
+            // ==========================================
+            int upLen = 0, downLen = 0, leftLen = 0, rightLen = 0;
             foreach (var tile in explosion.AffectedTiles)
             {
-                // Vẽ vụ nổ xanh đè lên ô gạch
-                spriteBatch.Draw(_explosionSprite,
-                    new Rectangle((int)tile.X * TileSize, (int)tile.Y * TileSize, TileSize, TileSize),
-                    Color.White);
+                if (tile.X == center.X && tile.Y < center.Y) upLen++;
+                if (tile.X == center.X && tile.Y > center.Y) downLen++;
+                if (tile.X < center.X && tile.Y == center.Y) leftLen++;
+                if (tile.X > center.X && tile.Y == center.Y) rightLen++;
+            }
+
+            // Khóa giới hạn cấp độ (Giả sử bạn có 5 ảnh cho mỗi hướng)
+            upLen = Math.Min(upLen, 5);
+            downLen = Math.Min(downLen, 5);
+            leftLen = Math.Min(leftLen, 5);
+            rightLen = Math.Min(rightLen, 5);
+
+
+            // ==========================================
+            // 3. VẼ TIA LỬA (Nối khít ngay mép tâm nổ)
+            // ==========================================
+
+            // Hướng Xuống
+            if (downLen > 0)
+            {
+                Rectangle destRect = new Rectangle(
+                    (int)(center.X * TileSize),
+                    (int)((center.Y + 1) * TileSize), // Sát dưới tâm
+                    TileSize,
+                    downLen * TileSize
+                );
+                spriteBatch.Draw(_texDown[downLen - 1], destRect, Color.White);
+            }
+
+            // Hướng Phải
+            if (rightLen > 0)
+            {
+                Rectangle destRect = new Rectangle(
+                    (int)((center.X + 1) * TileSize), // Sát phải tâm
+                    (int)(center.Y * TileSize),
+                    rightLen * TileSize,
+                    TileSize
+                );
+                spriteBatch.Draw(_texRight[rightLen - 1], destRect, Color.White);
+            }
+
+            // Hướng Lên
+            if (upLen > 0)
+            {
+                Rectangle destRect = new Rectangle(
+                    (int)(center.X * TileSize),
+                    (int)((center.Y - upLen) * TileSize), // Gốc nằm ở đỉnh tia lửa
+                    TileSize,
+                    upLen * TileSize
+                );
+                spriteBatch.Draw(_texUp[upLen - 1], destRect, Color.White);
+            }
+
+            // Hướng Trái
+            if (leftLen > 0)
+            {
+                Rectangle destRect = new Rectangle(
+                    (int)((center.X - leftLen) * TileSize), // Gốc nằm ở rìa trái tia lửa
+                    (int)(center.Y * TileSize),
+                    leftLen * TileSize,
+                    TileSize
+                );
+                spriteBatch.Draw(_texLeft[leftLen - 1], destRect, Color.White);
             }
         }
 

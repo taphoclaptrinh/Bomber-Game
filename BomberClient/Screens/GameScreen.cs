@@ -6,6 +6,7 @@ using BomberShared.Models;
 using BomberShared.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+//using SharpDX.Direct2D1;
 using System;
 using System.Linq;
 
@@ -144,5 +145,6 @@ namespace BomberClient.Screens
             //    OnGameOver?.Invoke(message);
             //}
         }
+
     }
 }

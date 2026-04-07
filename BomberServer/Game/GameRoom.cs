@@ -50,5 +50,6 @@ namespace BomberServer.Game
 
         // đủ 2 người trở lên là bắt đầu được (Đang để >= 1 để test 1 người)
         public bool IsReady() => Players.Count >= 1 && !IsStarted;
+
     }
 }

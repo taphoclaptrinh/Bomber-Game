@@ -13,6 +13,7 @@ namespace BomberShared.Models
         public int BlastRadius { get; set; } = 1;
         public float FuseTime { get; set; } = 2f;
         public bool IsDetonated { get; set; } = false;
+        public int Power { get; set; } = 1;
         public void Update(float deltaTime) {
             FuseTime -= deltaTime;
             if (FuseTime <= 0 && !IsDetonated)
@@ -21,6 +22,7 @@ namespace BomberShared.Models
         public void Detonated() {
             IsDetonated = true;
         }
-            
+
+
     }
 }

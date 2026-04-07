@@ -65,6 +65,34 @@
 /processorParam:TextureFormat=Color
 /build:Sprites/bombbang.png
 
+# Hướng Lên
+/build:Sprites/bombbang_up1.png
+/build:Sprites/bombbang_up2.png
+/build:Sprites/bombbang_up3.png
+/build:Sprites/bombbang_up4.png
+/build:Sprites/bombbang_up5.png
+
+# Hướng Xuống
+/build:Sprites/bombbang_down1.png
+/build:Sprites/bombbang_down2.png
+/build:Sprites/bombbang_down3.png
+/build:Sprites/bombbang_down4.png
+/build:Sprites/bombbang_down5.png
+
+# Hướng Trái
+/build:Sprites/bombbang_left1.png
+/build:Sprites/bombbang_left2.png
+/build:Sprites/bombbang_left3.png
+/build:Sprites/bombbang_left4.png
+/build:Sprites/bombbang_left5.png
+
+# Hướng Phải
+/build:Sprites/bombbang_right1.png
+/build:Sprites/bombbang_right2.png
+/build:Sprites/bombbang_right3.png
+/build:Sprites/bombbang_right4.png
+/build:Sprites/bombbang_right5.png
+
 #begin Sprites/bomb.png
 /importer:TextureImporter
 /processor:TextureProcessor
