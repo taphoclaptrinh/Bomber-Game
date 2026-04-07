@@ -89,43 +89,42 @@ namespace BomberClient.Screens
             spriteBatch.Begin();
 
             // 1. Vẽ lớp phủ tối che hết màn hình
-            // (rect là texture 1x1 đen tớ đã hướng dẫn tạo)
             spriteBatch.Draw(rect, new Rectangle(0, 0, screenWidth, screenHeight), Color.White * 0.7f);
 
-            // 2. Căn giữa Badge (Huy hiệu)
+            // 1. Giữ mỏ neo Menu ở 65% màn hình (để không bị văng)
+            float menuStartY = screenHeight * 0.65f;
+
+            // 2. Căn giữa Badge và cho nó LÙI XUỐNG sát chữ hơn
             if (_statusImage != null)
             {
                 Vector2 badgePos = new Vector2(
                     (screenWidth - _statusImage.Width) / 2,
-                    screenHeight * 0.15f // Nằm ở vị trí 15% chiều cao từ trên xuống
+                    menuStartY - _statusImage.Height + 60
                 );
                 spriteBatch.Draw(_statusImage, badgePos, Color.White);
             }
 
-            // 3. Căn giữa dòng thông báo (Victory/Defeat)
-            Vector2 msgSize = _font.MeasureString(_message);
-            Vector2 msgPos = new Vector2(
-                (screenWidth - msgSize.X) / 2,
-                (screenHeight / 2) // Nằm chính giữa chiều cao
-            );
-            spriteBatch.DrawString(_font, _message, msgPos, Color.Yellow);
-
-            // 4. Căn giữa Menu (Chơi lại / Thoát)
+            // 3. Vẽ nút CHOI LAI
             string playAgainText = (_selectedIndex == 0) ? "> CHOI LAI <" : "  CHOI LAI  ";
             Vector2 menuSize = _font.MeasureString(playAgainText);
             Vector2 menuPos = new Vector2(
                 (screenWidth - menuSize.X) / 2,
-                msgPos.Y + 60 // Cách dòng thông báo 60 pixel
+                menuStartY
             );
             spriteBatch.DrawString(_font, playAgainText, menuPos, (_selectedIndex == 0) ? Color.Red : Color.White);
 
+            // 4. Vẽ nút THOAT
             bool isSelected1 = (_selectedIndex == 1);
             string text1 = isSelected1 ? "> THOAT <" : "  THOAT  ";
             Vector2 size1 = _font.MeasureString(text1);
-            Vector2 pos1 = new Vector2((screenWidth - size1.X) / 2, 460); // Nằm dưới nút Chơi lại 60px
+            Vector2 pos1 = new Vector2(
+                (screenWidth - size1.X) / 2,
+                menuPos.Y + 50
+            );
             spriteBatch.DrawString(_font, text1, pos1, isSelected1 ? Color.Gold : Color.White);
 
             spriteBatch.End();
+
         }
 
     }

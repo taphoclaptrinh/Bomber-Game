@@ -133,7 +133,7 @@ namespace BomberClient
 
                 Task.Run(async () => {
                     await Task.Delay(1500); // Chờ 1.5s cho "nghệ thuật"
-                    SwitchToGameOver("BAN DA BI TIEU DIET!");
+                    SwitchToGameOver("");
                     _isEnding = false; // Reset lại chốt cho trận sau
                 });
 
@@ -150,7 +150,7 @@ namespace BomberClient
 
                 Task.Run(async () => {
                     await Task.Delay(1500);
-                    SwitchToGameOver("VICTORY! CHUC MUNG BAN!");
+                    SwitchToGameOver("");
                     _isEnding = false;
                 });
 
