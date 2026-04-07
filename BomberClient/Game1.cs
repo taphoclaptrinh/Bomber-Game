@@ -1,6 +1,7 @@
 ﻿using BomberClient.Network;
 using BomberClient.Rendering;
 using BomberClient.Screens;
+using BomberClient.UI; // Đừng quên using thư mục chứa Button và MainMenu của cậu nhé!
 using BomberShared.Network;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,12 +21,20 @@ namespace BomberClient
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
         private NetworkManager _network;
-        private GameRenderer _renderer = new GameRenderer(); // Quản lý âm thanh
+        private GameRenderer _renderer = new GameRenderer();
         private Song _sndBackGround;
         private bool _isBGMPlaying = false;
         private bool _isEnding = false;
-        private enum GameState { Lobby, Playing, GameOver, Win }
-        private GameState _state = GameState.Lobby;
+
+        // 1. THÊM TRẠNG THÁI MAINMENU VÀ TUTORIAL
+        private enum GameState { MainMenu, Tutorial, Lobby, Playing, GameOver, Win }
+
+        // 2. SỬA TRẠNG THÁI BẮT ĐẦU THÀNH MAINMENU
+        private GameState _state = GameState.MainMenu;
+
+        // 3. KHAI BÁO 2 MÀN HÌNH MỚI
+        private MainMenuScreen _mainMenuScreen;
+        private TutorialScreen _tutorialScreen;
 
         private LobbyScreen _lobbyScreen;
         private GameScreen? _gameScreen;
@@ -45,10 +54,10 @@ namespace BomberClient
         {
             _graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
-            IsMouseVisible = true;
+            IsMouseVisible = true; // Đã bật chuột để click UI
             _graphics.PreferredBackBufferWidth = 800;
             _graphics.PreferredBackBufferHeight = 620;
-            Window.Title = "Tày đặt bom (Test Mode)";
+            Window.Title = "Tày đặt bom";
         }
 
         protected override void Initialize()
@@ -56,23 +65,11 @@ namespace BomberClient
             StartServerProcess();
             _network = new NetworkManager(ServerUrl);
 
-            // Đăng ký sự kiện âm thanh từ NetworkManager
             _network.OnStateReceived += HandleSoundEvents;
 
-            // Đăng ký sự kiện khi Server báo Game bắt đầu thực sự
             _network.OnGameStarted += () => {
                 _shouldSwitchToGame = true;
             };
-
-            //Task.Run(async () =>
-            //{
-            //    await Task.Delay(2000);
-            //    await _network.Connect();
-            //    await _network.JoinRoom("TESTROOM", "AutoPlayer");
-            //    // Lưu ý: Thường Start game sẽ do Server báo qua OnGameStarted
-            //    // Nhưng nếu test mode tự vào luôn thì để dòng dưới:
-            //    _shouldSwitchToGame = true;
-            //});
 
             base.Initialize();
         }
@@ -80,73 +77,66 @@ namespace BomberClient
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+            // --- KHỞI TẠO MAIN MENU ---
+            _mainMenuScreen = new MainMenuScreen();
+            _mainMenuScreen.LoadContent(Content, GraphicsDevice);
+
+            // Nối dây tín hiệu chuyển màn hình
+            _mainMenuScreen.OnPlayClicked = () => _state = GameState.Lobby;
+            _mainMenuScreen.OnTutorialClicked = () => _state = GameState.Tutorial;
+            _mainMenuScreen.OnExitClicked = () => Exit();
+
+            // --- KHỞI TẠO TUTORIAL ---
+            _tutorialScreen = new TutorialScreen();
+            _tutorialScreen.LoadContent(Content, GraphicsDevice);
+
+            // Nối dây tín hiệu quay lại
+            _tutorialScreen.OnBackClicked = () => _state = GameState.MainMenu;
+
+            // --- KHỞI TẠO LOBBY NHƯ CŨ ---
             _lobbyScreen = new LobbyScreen(_network);
             _lobbyScreen.LoadContent(Content);
 
-            // Trong Game1.cs -> LoadContent
             _footstepInstance = Content.Load<SoundEffect>("Sounds/res_sound_foot").CreateInstance();
             _footstepInstance.IsLooped = true;
-            _footstepInstance.Volume = 1.0f; // Ép Volume to nhất để test
+            _footstepInstance.Volume = 1.0f;
 
-            //Load nhạc nền (nếu có)
             _sndBackGround = Content.Load<Song>("Sounds/res_sound_background");
             MediaPlayer.IsRepeating = true;
-            MediaPlayer.Volume = 0.3f; // Giảm volume nhạc nền để nghe rõ tiếng hiệu ứng hơn
+            MediaPlayer.Volume = 0.3f;
 
-            // QUAN TRỌNG: Phải load âm thanh cho Renderer ở đây
             _renderer.LoadContent(Content, GraphicsDevice);
         }
 
         private void HandleSoundEvents(GameStateDTO newState)
         {
-            // 1. Chỉ xử lý âm thanh khi ĐANG CHƠI và có đủ dữ liệu 2 frame để so sánh
+            // ... (Giữ nguyên toàn bộ logic HandleSoundEvents cũ của cậu) ...
             if (_state != GameState.Playing || newState == null || _lastState == null)
             {
-                _lastState = newState; // Cập nhật để lần sau có cái mà so sánh
+                _lastState = newState;
                 return;
             }
 
-            // Lấy thông tin của mình ở frame hiện tại và frame trước
             string myId = _network.GetConnectionId();
             var me = newState.Players.FirstOrDefault(p => p.Id == myId);
             var myOldState = _lastState.Players.FirstOrDefault(p => p.Id == myId);
 
-            // 2. Kiểm tra tiếng BOM NỔ
             if (newState.Explosions.Count > _lastState.Explosions.Count)
                 _renderer.PlayBombExplosion();
 
-            // 3. Kiểm tra QUÁI CHẾT
             int currentCreeps = newState.Creeps.Count(c => c.IsAlive);
             int oldCreeps = _lastState.Creeps.Count(c => c.IsAlive);
             if (currentCreeps < oldCreeps)
                 _renderer.PlayMonsterDie();
 
-            // 4. Kiểm tra NHẶT ITEM
             if (newState.Items.Count < _lastState.Items.Count)
                 _renderer.PlayPickItem();
 
-            // 5. Kiểm tra MÌNH CHẾT (Quan trọng nhất)
             if (myOldState != null && myOldState.IsAlive && me != null && !me.IsAlive)
             {
                 _renderer.PlayPlayerDie();
-                _isEnding = true; // BẬT CHỐT: Dừng ngay lập tức mọi âm thanh di chuyển và phím bấm
-
-                Task.Run(async () => {
-                    await Task.Delay(1500); // Chờ 1.5s cho "nghệ thuật"
-                    SwitchToGameOver("");
-                    _isEnding = false; // Reset lại chốt cho trận sau
-                });
-
-                _lastState = null;
-                return;
-            }
-
-            // 6. Kiểm tra THẮNG (Sạch quái)
-            if (oldCreeps > 0 && currentCreeps == 0)
-            {
                 _isEnding = true;
-
-                _renderer.PlayWinSound();
 
                 Task.Run(async () => {
                     await Task.Delay(1500);
@@ -158,127 +148,154 @@ namespace BomberClient
                 return;
             }
 
+            if (oldCreeps > 0 && currentCreeps == 0)
+            {
+                _isEnding = true;
+                _renderer.PlayWinSound();
+
+                Task.Run(async () => {
+                    await Task.Delay(1500);
+                    SwitchToGameOver("VICTORY");
+                    _isEnding = false;
+                });
+
+                _lastState = null;
+                return;
+            }
+
             _lastState = newState;
         }
 
-        protected override void Update(GameTime gameTime)
-        {
-            // GIẢI PHÁP CHO LỖI TREO: Kiểm tra flag để chuyển cảnh
-            if (_shouldSwitchToGame)
+            protected override void Update(GameTime gameTime)
             {
-                _shouldSwitchToGame = false;
-                SwitchToGame();
-            }
+                if (_shouldSwitchToGame)
+                {
+                    _shouldSwitchToGame = false;
+                    SwitchToGame();
+                }
 
-            if (!_isBGMPlaying && _sndBackGround != null)
-            {
-                MediaPlayer.Play(_sndBackGround);
-                _isBGMPlaying = true; // Cắm cờ để không gọi lại lệnh Play nữa
-            }
+                if (!_isBGMPlaying && _sndBackGround != null)
+                {
+                    MediaPlayer.Play(_sndBackGround);
+                    _isBGMPlaying = true;
+                }
 
-            switch (_state)
-            {
-                case GameState.Lobby:
-                    _lobbyScreen.Update(gameTime);
-                    break;
-
-                case GameState.Playing:
-                    _gameScreen?.Update(gameTime);
-
-                    if (_isEnding)
-                    {
-                        if (_footstepInstance.State == SoundState.Playing) _footstepInstance.Stop();
+                // 4. BỔ SUNG UPDATE CHO 2 MÀN HÌNH MỚI
+                switch (_state)
+                {
+                    case GameState.MainMenu:
+                        _mainMenuScreen.Update(gameTime);
                         break;
-                    }
 
-                    // 1. Lấy trạng thái bàn phím hiện tại
-                    var currentKB = Keyboard.GetState();
+                    case GameState.Tutorial:
+                        _tutorialScreen.Update(gameTime);
+                        break;
 
-                    // 2. Xử lý tiếng ĐẶT BOM (Chỉ phát 1 lần khi vừa nhấn Space)
-                    if (currentKB.IsKeyDown(Keys.Space) && _oldKeyboardState.IsKeyUp(Keys.Space))
-                    {
-                        _renderer.PlayNewBombSound(); // Gọi hàm phát tiếng đặt bom
-                    }
+                    case GameState.Lobby:
+                        _lobbyScreen.Update(gameTime);
+                        break;
 
-                    // 3. Xử lý tiếng BƯỚC CHÂN (Dùng Instance để mượt mà)
-                    if (IsLocalPlayerMoving(currentKB))
-                    {
-                        // Nếu đang di chuyển mà nhạc chưa phát thì bật lên
-                        if (_footstepInstance.State != SoundState.Playing)
+                    case GameState.Playing:
+                        _gameScreen?.Update(gameTime);
+
+                        if (_isEnding)
                         {
-                            _footstepInstance.Play();
+                            if (_footstepInstance.State == SoundState.Playing) _footstepInstance.Stop();
+                            break;
                         }
-                    }
-                    else
-                    {
-                        // Nếu đứng yên (không nhấn phím nào) thì dừng ngay lập tức
-                        if (_footstepInstance.State == SoundState.Playing)
+
+                        var currentKB = Keyboard.GetState();
+
+                        if (currentKB.IsKeyDown(Keys.Space) && _oldKeyboardState.IsKeyUp(Keys.Space))
                         {
-                            _footstepInstance.Stop();
+                            _renderer.PlayNewBombSound();
                         }
-                    }
 
-                    // 4. Lưu trạng thái phím để so sánh cho frame sau
-                    _oldKeyboardState = currentKB;
-                    break;
+                        if (IsLocalPlayerMoving(currentKB))
+                        {
+                            if (_footstepInstance.State != SoundState.Playing)
+                            {
+                                _footstepInstance.Play();
+                            }
+                        }
+                        else
+                        {
+                            if (_footstepInstance.State == SoundState.Playing)
+                            {
+                                _footstepInstance.Stop();
+                            }
+                        }
 
-                case GameState.GameOver:
-                    _gameOverScreen?.Update(gameTime);
-                    break;
+                        _oldKeyboardState = currentKB;
+                        break;
+
+                    case GameState.GameOver:
+                    case GameState.Win:
+                        _gameOverScreen?.Update(gameTime);
+                        break;
+                }
+
+                base.Update(gameTime);
             }
 
-            base.Update(gameTime);
-        }
-
-        private bool IsLocalPlayerMoving(KeyboardState kb)
-        {
-            return kb.IsKeyDown(Keys.Up) || kb.IsKeyDown(Keys.Left) ||
-                   kb.IsKeyDown(Keys.Down) || kb.IsKeyDown(Keys.Right);
-        }
-
-        protected override void Draw(GameTime gameTime)
-        {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-
-            switch (_state)
+            private bool IsLocalPlayerMoving(KeyboardState kb)
             {
-                case GameState.Lobby:
-                    _lobbyScreen.Draw(_spriteBatch, GraphicsDevice);
-                    break;
-
-                case GameState.Playing:
-                    _gameScreen?.Draw(_spriteBatch, GraphicsDevice);
-                    break;
-
-                case GameState.GameOver:
-                case GameState.Win:
-                    _gameScreen?.Draw(_spriteBatch, GraphicsDevice);
-                    _gameOverScreen?.Draw(_spriteBatch, GraphicsDevice);
-                    break;
+                return kb.IsKeyDown(Keys.Up) || kb.IsKeyDown(Keys.Left) ||
+                       kb.IsKeyDown(Keys.Down) || kb.IsKeyDown(Keys.Right);
             }
 
-            base.Draw(gameTime);
-        }
+            protected override void Draw(GameTime gameTime)
+            {
+                GraphicsDevice.Clear(Color.CornflowerBlue);
+
+                switch (_state)
+                {
+                    // 5. BỔ SUNG DRAW CHO 2 MÀN HÌNH MỚI
+                    case GameState.MainMenu:
+                        _spriteBatch.Begin();
+                        _mainMenuScreen.Draw(_spriteBatch);
+                        _spriteBatch.End();
+                        break;
+
+                    case GameState.Tutorial:
+                        _spriteBatch.Begin();
+                        _tutorialScreen.Draw(_spriteBatch);
+                        _spriteBatch.End();
+                        break;
+
+                    case GameState.Lobby:
+                        _lobbyScreen.Draw(_spriteBatch, GraphicsDevice);
+                        break;
+
+                    case GameState.Playing:
+                        _gameScreen?.Draw(_spriteBatch, GraphicsDevice);
+                        break;
+
+                    case GameState.GameOver:
+                    case GameState.Win:
+                        _gameScreen?.Draw(_spriteBatch, GraphicsDevice);
+                        _gameOverScreen?.Draw(_spriteBatch, GraphicsDevice);
+                        break;
+                }
+
+                base.Draw(gameTime);
+            }
 
         private void SwitchToGame()
         {
-            _lastState = null; // Xóa dữ liệu cũ của trận trước
-            _isBGMPlaying = false; // Ép nhạc nền load lại
+            _lastState = null;
+            _isBGMPlaying = false;
 
             _myPlayerId = _network.GetConnectionId();
 
-            // 1. Giả sử Map của cậu là 15x13 và mỗi ô (Tile) là 48 pixel
-            // Nếu Tile của cậu là 64 thì sửa số 48 thành 64 nhé
             int tileSize = 48;
             int mapWidth = 15;
             int mapHeight = 13;
 
-            // 2. Cập nhật lại kích thước cửa sổ cho vừa khít Map
             _graphics.PreferredBackBufferWidth = mapWidth * tileSize;
             _graphics.PreferredBackBufferHeight = mapHeight * tileSize;
-            _graphics.ApplyChanges(); // QUAN TRỌNG: Phải có dòng này để thực thi thay đổi
+            _graphics.ApplyChanges();
 
-            // 3. Khởi tạo Screen như cũ
             _gameScreen = new GameScreen(_network, _myPlayerId, GraphicsDevice);
             _gameScreen.LoadContent(Content);
             _gameScreen.OnGameOver += (message) => SwitchToGameOver(message);
@@ -288,48 +305,35 @@ namespace BomberClient
 
         private void SwitchToGameOver(string message)
         {
-            //khoi tao man hinh game over va truyen message tu game screen sang
-
             _gameOverScreen = new GameOverScreen(message);
-
             bool win = message.ToUpper().Contains("WIN") || message.ToUpper().Contains("VICTORY");
-
             _gameOverScreen.LoadContent(Content, win);
-
-            // Đăng ký sự kiện cho các nút Play Again và Quit
 
             _gameOverScreen.OnPlayAgain += () =>
             {
-                // 1. Phục hồi màn hình Lobby
                 _graphics.PreferredBackBufferWidth = 800;
                 _graphics.PreferredBackBufferHeight = 620;
                 _graphics.ApplyChanges();
 
-                // 2. Dọn dẹp âm thanh
                 _footstepInstance?.Stop();
                 MediaPlayer.Stop();
 
-                // 3. RESET LOBBY VỀ TRẠNG THÁI BAN ĐẦU (Đây là chỗ cậu cần!)
                 _lobbyScreen.ResetToDefault();
 
-                // 4. Reset các biến logic của Game1
                 _isEnding = false;
                 _lastState = null;
                 _gameScreen = null;
                 _shouldSwitchToGame = false;
 
-                // 5. Quay về màn hình Lobby
-                _state = GameState.Lobby;
-
+                // Tuỳ ý: Có thể cho về MainMenu hoặc Lobby. Hiện tại tớ cho về MainMenu để đúng chuẩn vòng lặp
+                _state = GameState.MainMenu;
             };
 
             _gameOverScreen.OnQuit += () => Exit();
 
-            // Chuyển trạng thái sang GameOver
             _state = GameState.GameOver;
         }
 
-        // --- QUẢN LÝ SERVER PROCESS ---
         private void StartServerProcess()
         {
             try
@@ -350,17 +354,12 @@ namespace BomberClient
 
         protected override void OnExiting(object sender, ExitingEventArgs args)
         {
-            // Kiểm tra xem Server có đang chạy không
             if (_serverProcess != null && !_serverProcess.HasExited)
             {
                 try
                 {
-                    // Cưỡng bức đóng cửa sổ CMD ngay lập tức
                     _serverProcess.Kill();
-
-                    // Giải phóng tài nguyên hệ thống
                     _serverProcess.Dispose();
-
                     Console.WriteLine("Server has been terminated.");
                 }
                 catch (Exception ex)
@@ -369,7 +368,6 @@ namespace BomberClient
                 }
             }
 
-            // CUỐI CÙNG: Gọi hàm của thư viện MonoGame để đóng Client
             base.OnExiting(sender, args);
         }
     }

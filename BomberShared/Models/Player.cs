@@ -33,7 +33,7 @@ namespace BomberShared.Models
 
         public void Move(int deltaX, int deltaY, Func<float, float, bool> isColliding)
         {
-            // 1. Cập nhật hướng (giữ nguyên logic của cậu)
+            // 1. Cập nhật hướng
             if (deltaY > 0) CurrentDirection = MoveDirection.Down;
             else if (deltaY < 0) CurrentDirection = MoveDirection.Up;
             else if (deltaX > 0) CurrentDirection = MoveDirection.Right;

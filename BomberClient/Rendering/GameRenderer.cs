@@ -243,7 +243,7 @@ namespace BomberClient.Rendering
                 if (tile.X > center.X && tile.Y == center.Y) rightLen++;
             }
 
-            // Khóa giới hạn cấp độ (Giả sử bạn có 5 ảnh cho mỗi hướng)
+            // Khóa giới hạn cấp độ
             upLen = Math.Min(upLen, 5);
             downLen = Math.Min(downLen, 5);
             leftLen = Math.Min(leftLen, 5);
