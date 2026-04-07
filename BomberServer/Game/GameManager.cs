@@ -123,7 +123,6 @@ namespace BomberServer.Game
                     if (packet.DeltaX != 0 || packet.DeltaY != 0)
                     {
                         // --- LOGIC XOAY: Cập nhật hướng dựa trên input ---
-                        // Ưu tiên hướng dọc (Y) hoặc ngang (X) tùy theo cái nào đang nhấn
                         if (packet.DeltaY > 0) player.CurrentDirection = MoveDirection.Down;
                         else if (packet.DeltaY < 0) player.CurrentDirection = MoveDirection.Up;
                         else if (packet.DeltaX < 0) player.CurrentDirection = MoveDirection.Left;
@@ -132,35 +131,55 @@ namespace BomberServer.Game
                         float moveAmount = player.Speed * 0.1f;
                         float margin = 0.2f;
 
+                        // THUẬT TOÁN SUB-STEPPING: Chia nhỏ bước đi
+                        // 0.1f là kích thước bước đi an toàn tối đa (không bao giờ lọt qua tường)
+                        int steps = (int)Math.Ceiling(moveAmount / 0.1f);
+                        if (steps <= 0) steps = 1; // Tránh lỗi chia cho 0
+                        float stepAmount = moveAmount / steps;
+
                         // Xử lý di chuyển trục X
                         if (packet.DeltaX != 0)
                         {
-                            float nextX = player.X + packet.DeltaX * moveAmount;
-                            int left = (int)(nextX + margin);
-                            int right = (int)(nextX + 1f - margin);
-                            int top = (int)(player.Y + margin);
-                            int bottom = (int)(player.Y + 1f - margin);
-
-                            if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
-                                Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                            for (int i = 0; i < steps; i++)
                             {
-                                player.X = nextX;
+                                float nextX = player.X + packet.DeltaX * stepAmount;
+                                int left = (int)(nextX + margin);
+                                int right = (int)(nextX + 1f - margin);
+                                int top = (int)(player.Y + margin);
+                                int bottom = (int)(player.Y + 1f - margin);
+
+                                if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
+                                    Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                                {
+                                    player.X = nextX; // Di chuyển an toàn
+                                }
+                                else
+                                {
+                                    break; // Đụng tường ở bước nhỏ nào thì dừng lại ngay ở đó
+                                }
                             }
                         }
 
                         // Xử lý di chuyển trục Y
                         if (packet.DeltaY != 0)
                         {
-                            float nextY = player.Y + packet.DeltaY * moveAmount;
-                            int left = (int)(player.X + margin);
-                            int right = (int)(player.X + 1f - margin);
-                            int top = (int)(nextY + margin);
-                            int bottom = (int)(nextY + 1f - margin);
-
-                            if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
-                                Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                            for (int i = 0; i < steps; i++)
                             {
-                                player.Y = nextY;
+                                float nextY = player.Y + packet.DeltaY * stepAmount;
+                                int left = (int)(player.X + margin);
+                                int right = (int)(player.X + 1f - margin);
+                                int top = (int)(nextY + margin);
+                                int bottom = (int)(nextY + 1f - margin);
+
+                                if (Map.IsWalkable(left, top) && Map.IsWalkable(right, top) &&
+                                    Map.IsWalkable(left, bottom) && Map.IsWalkable(right, bottom))
+                                {
+                                    player.Y = nextY;
+                                }
+                                else
+                                {
+                                    break; // Đụng tường thì dừng
+                                }
                             }
                         }
                     }
